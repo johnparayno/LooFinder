@@ -30,3 +30,5 @@ coverage/
 
 # SQLite data (optional - uncomment if DB should not be committed)
 # backend/data/
+backend/data/*.db-shm
+backend/data/*.db-wal
