@@ -308,7 +308,10 @@ export async function seedDatabase(dbPath?: string): Promise<{ count: number; so
   const db = getDatabase(dbPath);
   initSchema(db);
 
-  // Clear existing toilets so we have a clean seed (avoids duplicates from multiple runs)
+  // Clear existing data - delete children first to satisfy foreign key constraints
+  db.prepare('DELETE FROM edit_suggestions').run();
+  db.prepare('DELETE FROM reports').run();
+  db.prepare('DELETE FROM user_submissions').run();
   db.prepare('DELETE FROM toilets').run();
 
   let toilets: ToiletInsert[] = [];
