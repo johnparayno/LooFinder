@@ -8,7 +8,7 @@ services:
     region: oregon
     rootDir: .  # Use repo root so both backend and frontend are available at runtime
 
-    buildCommand: cd backend && npm install && npm run build && npm run seed && cd ../frontend && npm install && npm run build && mkdir -p ../backend/public && cp -r dist/* ../backend/public/
+    buildCommand: cd backend && npm install && npm run build && npm run seed && cd ../frontend && npm install && npm run build && mkdir -p ../backend/public && cp -r dist/. ../backend/public/ && ls -la ../backend/public/
     startCommand: cd backend && NODE_ENV=production npm start
 
     envVars:
