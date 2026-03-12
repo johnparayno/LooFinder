@@ -1,0 +1,540 @@
+/* GoMore-inspired design system - LooFinder */
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+
+* {
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+:root {
+  /* GoMore-inspired palette: soft greens, teals, clean neutrals */
+  --color-primary: #00a86b;
+  --color-primary-hover: #008f5a;
+  --color-primary-light: #e6f7f0;
+  --color-secondary: #0d9488;
+  --color-accent: #14b8a6;
+  --color-text: #1a1a1a;
+  --color-text-muted: #64748b;
+  --color-text-light: #94a3b8;
+  --color-bg: #ffffff;
+  --color-bg-soft: #f8fafc;
+  --color-bg-hero: #f0fdf4;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-success: #059669;
+  --color-error: #dc2626;
+  --color-warning: #d97706;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.1);
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  font-family: 'DM Sans', system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+
+.toilet-marker {
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Layout */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+}
+
+.layout-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+  background: var(--color-bg);
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  box-shadow: var(--shadow-sm);
+}
+
+.layout-nav-brand {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-decoration: none;
+  letter-spacing: -0.02em;
+}
+
+.layout-nav-links {
+  display: flex;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.layout-nav-link {
+  color: var(--color-text-muted);
+  text-decoration: none;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: color 0.2s, background 0.2s;
+}
+
+.layout-nav-link:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.layout-nav-link.active {
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  font-weight: 600;
+}
+
+.layout-main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+}
+
+.layout-main-content {
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+/* Map page: scrollable so ToiletCard + footer appear below map */
+.layout-main-map {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  flex: 1 1 0;
+  min-height: 0;
+}
+.layout-main-map .layout-main-content {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+.layout-main-map .layout-main-content > * {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.layout-footer {
+  background: var(--color-text);
+  color: rgba(255, 255, 255, 0.85);
+  padding: 3rem 1.5rem 2rem;
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
+.layout-footer-inner {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.layout-footer-section h4 {
+  font-size: 0.875rem;
+  font-weight: 600;
+  margin: 0 0 1rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.layout-footer-section ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.layout-footer-section li {
+  margin-bottom: 0.5rem;
+}
+
+.layout-footer-section a {
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: color 0.2s;
+}
+
+.layout-footer-section a:hover {
+  color: white;
+}
+
+.layout-footer-bottom {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* Landing page */
+.landing-hero {
+  background: linear-gradient(180deg, var(--color-bg-hero) 0%, var(--color-bg) 100%);
+  padding: 4rem 1.5rem 3rem;
+  text-align: center;
+}
+
+.landing-hero h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--color-text);
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.landing-hero .tagline {
+  font-size: 1.25rem;
+  color: var(--color-text-muted);
+  margin: 0 0 2rem;
+  max-width: 36rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.landing-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem 2rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-lg);
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  box-shadow: var(--shadow-md);
+}
+
+.landing-hero-cta:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.landing-section {
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+
+.landing-section h2 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--color-text);
+  letter-spacing: -0.02em;
+}
+
+.landing-section p {
+  margin: 0 0 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+  font-size: 1.05rem;
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.landing-feature-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.landing-feature-card:hover {
+  box-shadow: var(--shadow-md);
+  border-color: var(--color-primary-light);
+}
+
+.landing-feature-card h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 0.5rem;
+  color: var(--color-text);
+}
+
+.landing-feature-card p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.category-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-muted);
+  line-height: 1.8;
+}
+
+.category-list li {
+  margin-bottom: 0.5rem;
+}
+
+.landing-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.landing-nav-link {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.875rem 1.5rem;
+  border-radius: var(--radius-lg);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.landing-nav-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.landing-nav-primary:hover {
+  background: var(--color-primary-hover);
+  color: white;
+}
+
+.landing-nav-link:not(.landing-nav-primary) {
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.landing-nav-link:not(.landing-nav-primary):hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+/* Donation page */
+.donation-page {
+  max-width: 36rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+}
+
+.donation-page h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1rem;
+  color: var(--color-text);
+}
+
+.donation-page p {
+  margin: 0 0 1rem;
+  color: var(--color-text-muted);
+  line-height: 1.6;
+}
+
+.donation-placeholder {
+  color: var(--color-text-light);
+  font-style: italic;
+}
+
+.donation-section {
+  margin-bottom: 2rem;
+}
+
+.donation-section h2 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 0.75rem;
+  color: var(--color-text);
+}
+
+.donation-list {
+  margin: 0.75rem 0 0;
+  padding-left: 1.5rem;
+  color: var(--color-text-muted);
+  line-height: 1.7;
+}
+
+.donation-form-section {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.donation-form-note {
+  color: var(--color-text-light);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+}
+
+.donation-form {
+  max-width: 20rem;
+}
+
+.donation-form-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--color-text);
+}
+
+.donation-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.donation-preset-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 500;
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.donation-preset-btn:hover {
+  background: var(--color-border-light);
+}
+
+.donation-preset-btn.active {
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+}
+
+.donation-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 16px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-sizing: border-box;
+}
+
+.donation-error {
+  color: var(--color-error);
+  font-size: 14px;
+  margin: 0 0 1rem;
+}
+
+.donation-btn {
+  padding: 12px 24px;
+  font-size: 16px;
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.donation-btn-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.donation-btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.donation-btn-primary:disabled {
+  background: var(--color-text-light);
+  cursor: not-allowed;
+}
+
+.donation-btn-submit {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.donation-success-message {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--color-success);
+  margin-bottom: 0.5rem;
+}
+
+.donation-success-note {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Page wrappers */
+.submit-page,
+.donation-page {
+  background: var(--color-bg);
+}
+
+.submit-page h1,
+.donation-page h1 {
+  color: var(--color-text);
+}
+
+/* Shared button styles */
+.btn-primary {
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--color-primary-hover);
+}
+
+.btn-secondary {
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.btn-secondary:hover {
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-light);
+}

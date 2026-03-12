@@ -1,0 +1,9 @@
+{
+  "name": "loofinder",
+  "private": true,
+  "description": "LooFinder MVP - Find toilets in Copenhagen",
+  "scripts": {
+    "test": "cd backend && npm run test && cd ../frontend && npm run test",
+    "lint": "cd backend && npm run lint && cd ../frontend && npm run lint"
+  }
+}
