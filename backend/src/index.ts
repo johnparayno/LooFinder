@@ -2,6 +2,7 @@
  * LooFinder MVP - Backend API
  */
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import express from 'express';
 import cors from 'cors';
@@ -23,13 +24,19 @@ app.use(express.json());
 
 app.use('/api', apiRouter);
 
-// Production: serve frontend build and SPA fallback
+// Production: serve frontend from backend/public (copied during build)
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '..', '..', 'frontend', 'dist');
+  const frontendPath = path.join(__dirname, '..', 'public');
+  const indexPath = path.join(frontendPath, 'index.html');
+  if (!fs.existsSync(indexPath)) {
+    console.error('[LooFinder] Frontend not found at', frontendPath, '- ensure build copies frontend/dist to backend/public');
+  }
   app.use(express.static(frontendPath));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) return next();
-    res.sendFile(path.join(frontendPath, 'index.html'));
+    res.sendFile(indexPath, (err) => {
+      if (err) next(err);
+    });
   });
 }
 
@@ -42,11 +49,13 @@ app.use((_req, res) => {
 app.use(
   (
     err: Error,
-    _req: express.Request,
+    req: express.Request,
     res: express.Response,
     _next: express.NextFunction
   ) => {
-    console.error(err);
+    console.error('[LooFinder] 500 Error:', err.message);
+    console.error('[LooFinder] Path:', req.method, req.path);
+    console.error('[LooFinder] Stack:', err.stack);
     res.status(500).json({ error: 'Internal server error' });
   }
 );
