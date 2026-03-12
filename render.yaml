@@ -7,7 +7,7 @@ services:
     runtime: node
     region: oregon
 
-    buildCommand: cd backend && npm install && npm run build && npm run seed && cd ../frontend && npm install && npm run build && cp -r dist ../backend/public
+    buildCommand: cd backend && npm install && npm run build && npm run seed && cd ../frontend && npm install && npm run build
     startCommand: cd backend && NODE_ENV=production npm start
 
     envVars:

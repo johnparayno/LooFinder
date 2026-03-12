@@ -24,12 +24,12 @@ app.use(express.json());
 
 app.use('/api', apiRouter);
 
-// Production: serve frontend from backend/public (copied during build)
+// Production: serve frontend from ../frontend/dist (sibling of backend when cwd=backend)
 if (process.env.NODE_ENV === 'production') {
-  const frontendPath = path.join(__dirname, '..', 'public');
+  const frontendPath = path.resolve(process.cwd(), '..', 'frontend', 'dist');
   const indexPath = path.join(frontendPath, 'index.html');
   if (!fs.existsSync(indexPath)) {
-    console.error('[LooFinder] Frontend not found at', frontendPath, '- ensure build copies frontend/dist to backend/public');
+    console.error('[LooFinder] Frontend not found at', frontendPath, '(cwd:', process.cwd(), ')');
   }
   app.use(express.static(frontendPath));
   app.get('*', (req, res, next) => {
