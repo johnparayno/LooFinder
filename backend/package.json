@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "LooFinder MVP API",
   "type": "module",
+  "overrides": {
+    "node-sass": "npm:sass@^1.69.0"
+  },
   "main": "dist/index.js",
   "scripts": {
     "dev": "tsx watch src/index.ts",
