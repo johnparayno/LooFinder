@@ -53,7 +53,7 @@ export function LandingPage() {
             Open map
           </Link>
           <Link to="/submit" className="landing-nav-link">
-            Submit a toilet
+            Add a toilet
           </Link>
           <Link to="/donate" className="landing-nav-link">
             Support the project

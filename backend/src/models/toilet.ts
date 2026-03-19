@@ -15,6 +15,9 @@ export type VenueType =
   | 'shopping_centre'
   | 'train_station'
   | 'bus_station'
+  | 'gym'
+  | 'swimming_pool'
+  | 'sports_hall'
   | 'other'
   | null;
 
@@ -87,6 +90,9 @@ const VENUE_TYPES: VenueType[] = [
   'shopping_centre',
   'train_station',
   'bus_station',
+  'gym',
+  'swimming_pool',
+  'sports_hall',
   'other',
 ];
 const SOURCE_TYPES: SourceType[] = ['public_dataset', 'user_submitted'];

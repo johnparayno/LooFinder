@@ -6,8 +6,7 @@ import type { Toilet } from '../services/api';
 import { getToiletImageUrl } from '../utils/toiletImage';
 import { getToiletDisplayName } from '../utils/toiletDisplay';
 import { getVenueTypeLabel } from '../utils/venueDisplay';
-import { ReportModal } from './ReportModal';
-import { EditSuggestionModal } from './EditSuggestionModal';
+import { EditModal } from './EditModal';
 
 interface ToiletCardProps {
   toilet: Toilet;
@@ -33,8 +32,7 @@ const TOILET_TYPE_LABELS: Record<NonNullable<Toilet['toilet_type']>, string> = {
 };
 
 export function ToiletCard({ toilet, onClose }: ToiletCardProps) {
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [showEditSuggestionModal, setShowEditSuggestionModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const isUnverified =
     toilet.verification_status === 'unverified' || toilet.verification_status === 'needs_review';
   const imageUrl = getToiletImageUrl(toilet, 800, 400);
@@ -140,31 +138,18 @@ export function ToiletCard({ toilet, onClose }: ToiletCardProps) {
 
       <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
         <button
-          onClick={() => setShowEditSuggestionModal(true)}
+          onClick={() => setShowEditModal(true)}
           className="toilet-card-btn toilet-card-btn-secondary"
         >
-          Suggest edit
-        </button>
-        <button
-          onClick={() => setShowReportModal(true)}
-          className="toilet-card-btn toilet-card-btn-secondary"
-        >
-          Report incorrect information
+          Edit
         </button>
       </div>
       </div>
 
-      {showEditSuggestionModal && (
-        <EditSuggestionModal
+      {showEditModal && (
+        <EditModal
           toilet={toilet}
-          onClose={() => setShowEditSuggestionModal(false)}
-        />
-      )}
-
-      {showReportModal && (
-        <ReportModal
-          toilet={toilet}
-          onClose={() => setShowReportModal(false)}
+          onClose={() => setShowEditModal(false)}
         />
       )}
     </div>

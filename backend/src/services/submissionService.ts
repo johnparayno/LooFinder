@@ -13,7 +13,12 @@ export type VenueType =
   | 'shopping_centre'
   | 'train_station'
   | 'bus_station'
+  | 'gym'
+  | 'swimming_pool'
+  | 'sports_hall'
   | 'other';
+
+export type ToiletType = 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
 
 export interface CreateSubmissionInput {
   name: string;
@@ -22,8 +27,21 @@ export interface CreateSubmissionInput {
   longitude: number;
   category: 'free' | 'code_required' | 'purchase_required';
   access_notes?: string | null;
+  access_code?: string | null;
   opening_hours?: string | null;
   venue_type?: VenueType | null;
+  toilet_type?: ToiletType;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
+  temporary_closed?: boolean;
 }
 
 export interface CreateSubmissionResult {
@@ -69,20 +87,29 @@ export function createSubmission(input: CreateSubmissionInput): CreateSubmission
     'shopping_centre',
     'train_station',
     'bus_station',
+    'gym',
+    'swimming_pool',
+    'sports_hall',
     'other',
   ];
   const venueType =
     input.venue_type && validVenueTypes.includes(input.venue_type) ? input.venue_type : null;
 
+  const validToiletTypes = ['handicap', 'pissoir', 'unisex', 'changingplace'];
+  const toiletType =
+    input.toilet_type && validToiletTypes.includes(input.toilet_type) ? input.toilet_type : null;
+
   const insertToilet = db.prepare(`
     INSERT INTO toilets (
       id, name, address, latitude, longitude, category,
       access_notes, access_code, opening_hours, source_type, verification_status,
-      temporary_closed, venue_type
+      temporary_closed, venue_type, toilet_type, payment, manned, changing_table,
+      tap, needle_container, contact, image_url, placement, year_round, round_the_clock
     ) VALUES (
       @id, @name, @address, @latitude, @longitude, @category,
-      @access_notes, NULL, @opening_hours, 'user_submitted', 'unverified',
-      0, @venue_type
+      @access_notes, @access_code, @opening_hours, 'user_submitted', 'unverified',
+      @temporary_closed, @venue_type, @toilet_type, @payment, @manned, @changing_table,
+      @tap, @needle_container, @contact, @image_url, @placement, @year_round, @round_the_clock
     )
   `);
 
@@ -104,8 +131,21 @@ export function createSubmission(input: CreateSubmissionInput): CreateSubmission
     longitude: input.longitude,
     category: input.category,
     access_notes: input.access_notes?.trim() || null,
+    access_code: input.access_code?.trim() || null,
     opening_hours: input.opening_hours?.trim() || null,
+    temporary_closed: input.temporary_closed ? 1 : 0,
     venue_type: venueType,
+    toilet_type: toiletType,
+    payment: input.payment ? 1 : 0,
+    manned: input.manned ? 1 : 0,
+    changing_table: input.changing_table ? 1 : 0,
+    tap: input.tap ? 1 : 0,
+    needle_container: input.needle_container ? 1 : 0,
+    contact: input.contact?.trim() || null,
+    image_url: input.image_url || null,
+    placement: input.placement?.trim() || null,
+    year_round: input.year_round !== false ? 1 : 0,
+    round_the_clock: input.round_the_clock ? 1 : 0,
   };
 
   const submissionData: Record<string, unknown> = {

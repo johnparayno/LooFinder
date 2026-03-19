@@ -35,6 +35,9 @@ const VENUE_OPTIONS: { value: VenueTypeFilter | ''; label: string }[] = [
   { value: 'shopping_centre', label: 'Shopping centre' },
   { value: 'train_station', label: 'Train station' },
   { value: 'bus_station', label: 'Bus station' },
+  { value: 'gym', label: 'Gym / Fitness' },
+  { value: 'swimming_pool', label: 'Swimming pool' },
+  { value: 'sports_hall', label: 'Sports hall' },
   { value: 'other', label: 'Other' },
 ];
 

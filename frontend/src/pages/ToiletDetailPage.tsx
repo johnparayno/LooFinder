@@ -8,8 +8,7 @@ import { getToiletById } from '../services/api';
 import { getToiletImageUrl } from '../utils/toiletImage';
 import { getToiletDisplayName } from '../utils/toiletDisplay';
 import { getVenueTypeLabel } from '../utils/venueDisplay';
-import { ReportModal } from '../components/ReportModal';
-import { EditSuggestionModal } from '../components/EditSuggestionModal';
+import { EditModal } from '../components/EditModal';
 
 const CATEGORY_LABELS: Record<Toilet['category'], string> = {
   free: 'Free',
@@ -52,8 +51,7 @@ export function ToiletDetailPage() {
   const [toilet, setToilet] = useState<Toilet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showReportModal, setShowReportModal] = useState(false);
-  const [showEditSuggestionModal, setShowEditSuggestionModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     if (!id) {
@@ -226,30 +224,19 @@ export function ToiletDetailPage() {
 
         <div className="toilet-detail-footer-actions">
           <button
-            onClick={() => setShowEditSuggestionModal(true)}
+            onClick={() => setShowEditModal(true)}
             className="toilet-detail-btn toilet-detail-btn-outline"
           >
-            Suggest edit
-          </button>
-          <button
-            onClick={() => setShowReportModal(true)}
-            className="toilet-detail-btn toilet-detail-btn-outline"
-          >
-            Report incorrect information
+            Edit
           </button>
         </div>
       </div>
 
-      {showEditSuggestionModal && (
-        <EditSuggestionModal
+      {showEditModal && (
+        <EditModal
           toilet={toilet}
-          onClose={() => setShowEditSuggestionModal(false)}
-        />
-      )}
-      {showReportModal && (
-        <ReportModal
-          toilet={toilet}
-          onClose={() => setShowReportModal(false)}
+          onClose={() => setShowEditModal(false)}
+          onSuccess={(updated) => setToilet(updated)}
         />
       )}
     </div>

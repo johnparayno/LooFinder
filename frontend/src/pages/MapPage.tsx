@@ -2,10 +2,10 @@
  * Map page - Airbnb-inspired full-screen map with floating UI
  */
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { Toilet, ToiletCategory, VerificationStatus, VenueTypeFilter } from '../services/api';
-import { listToilets, findNearestToilet } from '../services/api';
+import { listToilets } from '../services/api';
 import {
   MapShell,
   MapSearchBar,
@@ -55,7 +55,7 @@ function MapController({
 
   useEffect(() => {
     if (centerOn) {
-      map.flyTo(centerOn, 16, { duration: 500 });
+      map.panTo(centerOn, { duration: 400 });
     }
   }, [map, centerOn]);
 
@@ -93,6 +93,9 @@ function MapController({
 }
 
 export function MapPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewParam = searchParams.get('view');
+
   const [toilets, setToilets] = useState<Toilet[]>([]);
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -105,7 +108,16 @@ export function MapPage() {
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
   const [locationUnavailable, setLocationUnavailable] = useState(false);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('half');
+  const [mobileView, setMobileView] = useState<'map' | 'list'>(() =>
+    viewParam === 'list' ? 'list' : 'map'
+  );
+  const [filterOverlayOpen, setFilterOverlayOpen] = useState(false);
   const lastBboxRef = useRef<string>('55.6,12.4,55.8,12.7');
+
+  // Sync view with URL when navigating (e.g. List nav link)
+  useEffect(() => {
+    setMobileView(viewParam === 'list' ? 'list' : 'map');
+  }, [viewParam]);
 
   const fetchToilets = useCallback(
     async (bbox: string, searchQuery?: string) => {
@@ -175,17 +187,6 @@ export function MapPage() {
     fetchToilets(lastBboxRef.current);
   }, [category, verificationStatus, venueType, fetchToilets]);
 
-  const handleFindNearest = useCallback(async () => {
-    const latLng = userLocation ?? DEFAULT_CENTER;
-    try {
-      const nearest = await findNearestToilet({ lat: latLng[0], lng: latLng[1] });
-      setSelectedToilet(nearest);
-      setBottomSheetSnap('half');
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'No toilet found');
-    }
-  }, [userLocation]);
-
   const handleLocateMe = useCallback(() => {
     if (userLocation) {
       setCenterOn(userLocation);
@@ -210,9 +211,48 @@ export function MapPage() {
     return () => navigator.geolocation.clearWatch(id);
   }, []);
 
+  const listPanel = (
+    <div className="map-list-panel">
+      <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
+        Nearby toilets
+      </h3>
+      {loading && (
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)' }}>
+          Loading…
+        </p>
+      )}
+      {error && (
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--color-error)' }}>
+          {error}
+        </p>
+      )}
+      {!loading && !error && toilets.length === 0 && (
+        <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)' }}>
+          No toilets in this area. Try moving the map or adjusting filters.
+        </p>
+      )}
+      {!loading && !error && toilets.length > 0 && (
+        <div className="toilet-preview-cards">
+          {toilets.map((toilet) => (
+            <ToiletPreviewCard
+              key={toilet.id}
+              toilet={toilet}
+              userLocation={userLocation}
+              isSelected={selectedToilet?.id === toilet.id}
+              onSelect={setSelectedToilet}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <MapShell>
-      <div className="map-wrapper">
+      <div className="map-desktop-layout">
+        <aside className="map-list-sidebar">{listPanel}</aside>
+        <div className={`map-wrapper ${mobileView === 'list' ? 'map-wrapper-list-mode' : ''}`}>
+        <div className="map-canvas-wrap">
         <MapContainer
           center={DEFAULT_CENTER}
           zoom={DEFAULT_ZOOM}
@@ -235,43 +275,108 @@ export function MapPage() {
             onBoundsChange={handleBoundsChange}
           />
         </MapContainer>
-
-        {/* Floating top: search + filters */}
-        <div className="map-floating-top">
-          <MapSearchBar
-            onSearch={handleSearch}
-            onLocateMe={handleLocateMe}
-            onAddressSelect={(address, lat, lng) => {
-              setSearch(address);
-              setCenterOn([lat, lng]);
-              setTimeout(() => setCenterOn(null), 500);
-              const bbox = `${lat - 0.02},${lng - 0.02},${lat + 0.02},${lng + 0.02}`;
-              lastBboxRef.current = bbox;
-              setLoading(true);
-              fetchToilets(bbox);
-            }}
-          />
-          <FilterPills
-            category={category}
-            verificationStatus={verificationStatus}
-            venueType={venueType}
-            onCategoryChange={setCategory}
-            onVerificationStatusChange={setVerificationStatus}
-            onVenueTypeChange={setVenueType}
-          />
         </div>
 
-        {/* Floating actions */}
-        <div className="map-floating-actions">
+        {/* Mobile list view - full screen when in list mode */}
+        <div className="map-mobile-list">
+          <div className="map-mobile-list-content">{listPanel}</div>
+        </div>
+
+        {/* Floating top: search + filter button */}
+        <div className="map-floating-top">
+          <div className="map-search-row">
+            <MapSearchBar
+              onSearch={handleSearch}
+              onLocateMe={handleLocateMe}
+              onAddressSelect={(address, lat, lng) => {
+                setSearch(address);
+                setCenterOn([lat, lng]);
+                setTimeout(() => setCenterOn(null), 500);
+                const bbox = `${lat - 0.02},${lng - 0.02},${lat + 0.02},${lng + 0.02}`;
+                lastBboxRef.current = bbox;
+                setLoading(true);
+                fetchToilets(bbox);
+              }}
+            />
+            <button
+              type="button"
+              className="map-filter-btn"
+              onClick={() => setFilterOverlayOpen(true)}
+              aria-label="Filters"
+            >
+              <FilterIcon />
+            </button>
+          </div>
+        </div>
+
+        {/* Filter overlay - full screen */}
+        {filterOverlayOpen && (
+          <div className="map-filter-overlay" role="dialog" aria-label="Filters">
+            <div className="map-filter-overlay-inner">
+              <div className="map-filter-overlay-header">
+                <h2 className="map-filter-overlay-title">Filters</h2>
+                <button
+                  type="button"
+                  className="map-filter-overlay-close"
+                  onClick={() => setFilterOverlayOpen(false)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <FilterPills
+                category={category}
+                verificationStatus={verificationStatus}
+                venueType={venueType}
+                onCategoryChange={setCategory}
+                onVerificationStatusChange={setVerificationStatus}
+                onVenueTypeChange={setVenueType}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* List/Map toggle - near bottom */}
+        <div className="map-view-toggle map-view-toggle-bottom" role="tablist" aria-label="View mode">
           <button
             type="button"
-            className="map-floating-btn primary"
-            onClick={handleFindNearest}
+            role="tab"
+            aria-selected={mobileView === 'list'}
+            className={`map-view-toggle-btn ${mobileView === 'list' ? 'active' : ''}`}
+            onClick={() => {
+              setMobileView('list');
+              setSearchParams({ view: 'list' });
+            }}
           >
-            <ToiletIcon />
-            <span>Nearest toilet</span>
+            List
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mobileView === 'map'}
+            className={`map-view-toggle-btn ${mobileView === 'map' ? 'active' : ''}`}
+            onClick={() => {
+              setMobileView('map');
+              setSearchParams({});
+            }}
+          >
+            Map
           </button>
         </div>
+
+        {/* Map marker - bottom right, center map on my location */}
+        {mobileView === 'map' && (
+          <div className="map-location-control">
+            <button
+              type="button"
+              className="map-location-btn"
+              onClick={handleLocateMe}
+              aria-label="Find my location"
+            >
+              <MapMarkerIcon />
+            </button>
+          </div>
+        )}
 
         {locationUnavailable && (
           <div className="map-location-banner" role="status">
@@ -314,8 +419,8 @@ export function MapPage() {
           </div>
         )}
 
-        {/* Bottom sheet with toilet preview cards */}
-        {!selectedToilet && (
+        {/* Bottom sheet with toilet preview cards - hidden in list mode */}
+        {!selectedToilet && mobileView === 'map' && (
           <BottomSheet
             snap={bottomSheetSnap}
             onSnapChange={setBottomSheetSnap}
@@ -358,15 +463,24 @@ export function MapPage() {
             </div>
           </BottomSheet>
         )}
+        </div>
       </div>
     </MapShell>
   );
 }
 
-function ToiletIcon() {
+function FilterIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M9 22v-4H6v-2h3v-2H6v-2h3V8a4 4 0 0 1 6 0v4h3v2h-3v2h3v2h-3v4" />
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+}
+
+function MapMarkerIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" />
     </svg>
   );
 }

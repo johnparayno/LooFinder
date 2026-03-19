@@ -1,8 +1,10 @@
-import { Outlet, Link, useLocation } from 'react-router-dom';
+import { Outlet, Link, useLocation, useSearchParams } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 export function Layout() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isListView = location.pathname === '/map' && searchParams.get('view') === 'list';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -36,15 +38,21 @@ export function Layout() {
           </Link>
           <Link
             to="/map"
-            className={`layout-nav-link ${location.pathname === '/map' ? 'active' : ''}`}
+            className={`layout-nav-link ${location.pathname === '/map' && !isListView ? 'active' : ''}`}
           >
             Map
+          </Link>
+          <Link
+            to="/map?view=list"
+            className={`layout-nav-link ${isListView ? 'active' : ''}`}
+          >
+            List
           </Link>
           <Link
             to="/submit"
             className={`layout-nav-link ${location.pathname === '/submit' ? 'active' : ''}`}
           >
-            Submit
+            Add
           </Link>
           <Link
             to="/donate"
@@ -66,7 +74,7 @@ export function Layout() {
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/map">Find toilets</Link></li>
-              <li><Link to="/submit">Submit a toilet</Link></li>
+              <li><Link to="/submit">Add a toilet</Link></li>
             </ul>
           </div>
           <div className="layout-footer-section">

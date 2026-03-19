@@ -6,9 +6,9 @@
  */
 import type { Toilet } from '../services/api';
 
-/** SVG placeholder with toilet icon - same for all toilets without image/streetview */
+/** SVG placeholder with toilet icon + "picture coming soon" - same for all toilets without image/streetview */
 const TOILET_PLACEHOLDER_SVG = `data:image/svg+xml,${encodeURIComponent(
-  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" fill="none"><rect width="120" height="80" fill="%23e2e8f0"/><g fill="%2394a3b8" opacity="0.6"><ellipse cx="60" cy="48" rx="18" ry="14"/><rect x="54" y="28" width="12" height="20" rx="2"/><circle cx="60" cy="22" r="5"/></g><text x="60" y="72" text-anchor="middle" font-size="9" fill="%2394a3b8" opacity="0.6" font-family="system-ui,sans-serif">picture on the way</text></svg>'
+  '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 80" fill="none"><rect width="120" height="80" fill="%23e2e8f0"/><g fill="%2364748b" opacity="0.8"><ellipse cx="60" cy="44" rx="22" ry="18"/><rect x="50" y="22" width="20" height="24" rx="3"/><circle cx="60" cy="14" r="7"/></g><text x="60" y="72" text-anchor="middle" font-size="11" font-weight="500" fill="%2364748b" font-family="system-ui,sans-serif">picture coming soon</text></svg>'
 )}`;
 
 export type ToiletImageType = 'image' | 'streetview' | 'placeholder';

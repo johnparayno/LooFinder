@@ -83,6 +83,9 @@ function validateSuggestedFieldValues(fields: Record<string, unknown>): string[]
           'shopping_centre',
           'train_station',
           'bus_station',
+          'gym',
+          'swimming_pool',
+          'sports_hall',
           'other',
         ];
         if (value !== null && value !== undefined) {

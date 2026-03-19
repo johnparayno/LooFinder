@@ -12,6 +12,9 @@ export type VenueType =
   | 'shopping_centre'
   | 'train_station'
   | 'bus_station'
+  | 'gym'
+  | 'swimming_pool'
+  | 'sports_hall'
   | 'other'
   | null;
 export type SourceType = 'public_dataset' | 'user_submitted';
@@ -110,8 +113,21 @@ export interface SubmitToiletInput {
   longitude: number;
   category: ToiletCategory;
   access_notes?: string | null;
+  access_code?: string | null;
   opening_hours?: string | null;
   venue_type?: VenueTypeFilter | null;
+  toilet_type?: ToiletType | null;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
+  temporary_closed?: boolean;
 }
 
 export interface SubmitToiletResponse {
@@ -130,9 +146,53 @@ export async function submitToilet(input: SubmitToiletInput): Promise<SubmitToil
       longitude: input.longitude,
       category: input.category,
       access_notes: input.access_notes ?? null,
+      access_code: input.access_code ?? null,
       opening_hours: input.opening_hours ?? null,
       venue_type: input.venue_type ?? null,
+      toilet_type: input.toilet_type ?? null,
+      payment: input.payment ?? false,
+      manned: input.manned ?? false,
+      changing_table: input.changing_table ?? false,
+      tap: input.tap ?? false,
+      needle_container: input.needle_container ?? false,
+      contact: input.contact ?? null,
+      image_url: input.image_url ?? null,
+      placement: input.placement ?? null,
+      year_round: input.year_round !== false,
+      round_the_clock: input.round_the_clock ?? false,
+      temporary_closed: input.temporary_closed ?? false,
     }),
+  });
+}
+
+export interface UpdateToiletInput {
+  name?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  category?: ToiletCategory;
+  access_notes?: string | null;
+  access_code?: string | null;
+  opening_hours?: string | null;
+  temporary_closed?: boolean;
+  venue_type?: VenueTypeFilter | null;
+  toilet_type?: ToiletType | null;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
+}
+
+export async function updateToilet(id: string, input: UpdateToiletInput): Promise<Toilet> {
+  return fetchApi<Toilet>(`/toilets/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(input),
   });
 }
 

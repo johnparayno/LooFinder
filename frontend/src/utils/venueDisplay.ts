@@ -11,6 +11,9 @@ export const VENUE_TYPE_LABELS: Record<NonNullable<VenueType>, string> = {
   shopping_centre: 'Shopping centre',
   train_station: 'Train station',
   bus_station: 'Bus station',
+  gym: 'Gym / Fitness',
+  swimming_pool: 'Swimming pool',
+  sports_hall: 'Sports hall',
   other: 'Other',
 };
 
@@ -26,5 +29,8 @@ export const VENUE_TYPE_OPTIONS = [
   { value: 'shopping_centre' as const, label: 'Shopping centre' },
   { value: 'train_station' as const, label: 'Train station' },
   { value: 'bus_station' as const, label: 'Bus station' },
+  { value: 'gym' as const, label: 'Gym / Fitness' },
+  { value: 'swimming_pool' as const, label: 'Swimming pool' },
+  { value: 'sports_hall' as const, label: 'Sports hall' },
   { value: 'other' as const, label: 'Other' },
 ];

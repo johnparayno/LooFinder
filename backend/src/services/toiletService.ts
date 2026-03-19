@@ -13,6 +13,9 @@ export type VenueType =
   | 'shopping_centre'
   | 'train_station'
   | 'bus_station'
+  | 'gym'
+  | 'swimming_pool'
+  | 'sports_hall'
   | 'other';
 
 export interface ListToiletsParams {
@@ -116,4 +119,101 @@ export function findNearestToilet(
   const row = stmt.get(values) as Record<string, unknown> | undefined;
   if (!row) return null;
   return rowToToilet(row);
+}
+
+export interface UpdateToiletInput {
+  name?: string;
+  address?: string;
+  latitude?: number;
+  longitude?: number;
+  category?: 'free' | 'code_required' | 'purchase_required';
+  access_notes?: string | null;
+  access_code?: string | null;
+  opening_hours?: string | null;
+  temporary_closed?: boolean;
+  venue_type?: VenueType | null;
+  toilet_type?: 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
+}
+
+export function updateToilet(id: string, input: UpdateToiletInput): Toilet | null {
+  const db = getDatabase();
+  const existing = getToiletById(id);
+  if (!existing) return null;
+
+  const updates: string[] = [];
+  const values: Record<string, unknown> = { id };
+
+  const setIfDefined = (
+    key: string,
+    value: unknown,
+    dbKey?: string
+  ) => {
+    if (value === undefined) return;
+    const k = dbKey ?? key;
+    updates.push(`${k} = @${k}`);
+    values[k] = value;
+  };
+
+  setIfDefined('name', input.name?.trim());
+  setIfDefined('address', input.address?.trim());
+  setIfDefined('latitude', input.latitude);
+  setIfDefined('longitude', input.longitude);
+  if (input.category) setIfDefined('category', input.category);
+  if (input.access_notes !== undefined) setIfDefined('access_notes', input.access_notes);
+  if (input.access_code !== undefined) setIfDefined('access_code', input.access_code);
+  if (input.opening_hours !== undefined) setIfDefined('opening_hours', input.opening_hours);
+  if (input.temporary_closed !== undefined) {
+    updates.push('temporary_closed = @temporary_closed');
+    values.temporary_closed = input.temporary_closed ? 1 : 0;
+  }
+  if (input.venue_type !== undefined) setIfDefined('venue_type', input.venue_type);
+  if (input.toilet_type !== undefined) setIfDefined('toilet_type', input.toilet_type);
+  if (input.payment !== undefined) {
+    updates.push('payment = @payment');
+    values.payment = input.payment ? 1 : 0;
+  }
+  if (input.manned !== undefined) {
+    updates.push('manned = @manned');
+    values.manned = input.manned ? 1 : 0;
+  }
+  if (input.changing_table !== undefined) {
+    updates.push('changing_table = @changing_table');
+    values.changing_table = input.changing_table ? 1 : 0;
+  }
+  if (input.tap !== undefined) {
+    updates.push('tap = @tap');
+    values.tap = input.tap ? 1 : 0;
+  }
+  if (input.needle_container !== undefined) {
+    updates.push('needle_container = @needle_container');
+    values.needle_container = input.needle_container ? 1 : 0;
+  }
+  if (input.contact !== undefined) setIfDefined('contact', input.contact);
+  if (input.image_url !== undefined) setIfDefined('image_url', input.image_url);
+  if (input.placement !== undefined) setIfDefined('placement', input.placement);
+  if (input.year_round !== undefined) {
+    updates.push('year_round = @year_round');
+    values.year_round = input.year_round ? 1 : 0;
+  }
+  if (input.round_the_clock !== undefined) {
+    updates.push('round_the_clock = @round_the_clock');
+    values.round_the_clock = input.round_the_clock ? 1 : 0;
+  }
+
+  if (updates.length === 0) return existing;
+
+  updates.push('updated_at = datetime(\'now\')');
+  const sql = `UPDATE toilets SET ${updates.join(', ')} WHERE id = @id`;
+  db.prepare(sql).run(values);
+  return getToiletById(id);
 }

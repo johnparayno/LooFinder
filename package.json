@@ -4,6 +4,7 @@
   "description": "LooFinder MVP - Find toilets in Copenhagen",
   "scripts": {
     "test": "cd backend && npm run test && cd ../frontend && npm run test",
-    "lint": "cd backend && npm run lint && cd ../frontend && npm run lint"
+    "lint": "cd backend && npm run lint && cd ../frontend && npm run lint",
+    "deploy": "git push"
   }
 }

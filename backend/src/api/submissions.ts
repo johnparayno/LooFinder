@@ -2,7 +2,11 @@
  * Submissions API routes
  */
 import { Router, Request, Response } from 'express';
-import { createSubmission } from '../services/submissionService.js';
+import {
+  createSubmission,
+  type VenueType,
+  type ToiletType,
+} from '../services/submissionService.js';
 
 const router = Router();
 
@@ -14,8 +18,29 @@ router.post('/', (req: Request, res: Response) => {
     return;
   }
 
-  const { name, address, latitude, longitude, category, access_notes, opening_hours, venue_type } =
-    body;
+  const {
+    name,
+    address,
+    latitude,
+    longitude,
+    category,
+    access_notes,
+    access_code,
+    opening_hours,
+    venue_type,
+    toilet_type,
+    payment,
+    manned,
+    changing_table,
+    tap,
+    needle_container,
+    contact,
+    image_url,
+    placement,
+    year_round,
+    round_the_clock,
+    temporary_closed,
+  } = body;
 
   if (typeof name !== 'string' || typeof address !== 'string') {
     res.status(400).json({ error: 'name and address are required' });
@@ -45,10 +70,20 @@ router.post('/', (req: Request, res: Response) => {
     'shopping_centre',
     'train_station',
     'bus_station',
+    'gym',
+    'swimming_pool',
+    'sports_hall',
     'other',
   ];
-  const venueTypeValue =
-    typeof venue_type === 'string' && validVenueTypes.includes(venue_type) ? venue_type : undefined;
+  const venueTypeValue: VenueType | null =
+    typeof venue_type === 'string' && validVenueTypes.includes(venue_type)
+      ? (venue_type as VenueType)
+      : null;
+  const validToiletTypes = ['handicap', 'pissoir', 'unisex', 'changingplace'];
+  const toiletTypeValue: ToiletType =
+    typeof toilet_type === 'string' && validToiletTypes.includes(toilet_type)
+      ? (toilet_type as ToiletType)
+      : null;
 
   try {
     const result = createSubmission({
@@ -58,8 +93,21 @@ router.post('/', (req: Request, res: Response) => {
       longitude: lng,
       category,
       access_notes: access_notes ?? null,
+      access_code: access_code ?? null,
       opening_hours: opening_hours ?? null,
-      venue_type: venueTypeValue ?? null,
+      venue_type: venueTypeValue,
+      toilet_type: toiletTypeValue,
+      payment: Boolean(payment),
+      manned: Boolean(manned),
+      changing_table: Boolean(changing_table),
+      tap: Boolean(tap),
+      needle_container: Boolean(needle_container),
+      contact: contact ?? null,
+      image_url: image_url ?? null,
+      placement: placement ?? null,
+      year_round: year_round !== false,
+      round_the_clock: Boolean(round_the_clock),
+      temporary_closed: Boolean(temporary_closed),
     });
 
     res.status(201).json({
