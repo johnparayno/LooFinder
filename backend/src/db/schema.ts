@@ -107,10 +107,18 @@ export function initSchema(db: Database.Database): void {
     ['placement', 'ALTER TABLE toilets ADD COLUMN placement TEXT'],
     ['year_round', 'ALTER TABLE toilets ADD COLUMN year_round INTEGER DEFAULT 1'],
     ['round_the_clock', 'ALTER TABLE toilets ADD COLUMN round_the_clock INTEGER DEFAULT 0'],
+    ['venue_type', 'ALTER TABLE toilets ADD COLUMN venue_type TEXT'],
   ];
   for (const [col, sql] of migrations) {
     if (!cols.has(col)) {
       db.exec(sql);
     }
+  }
+
+  // Migrations for user_submissions
+  const submissionInfo = db.prepare("PRAGMA table_info(user_submissions)").all() as { name: string }[];
+  const submissionCols = new Set(submissionInfo.map((c) => c.name));
+  if (!submissionCols.has('venue_type')) {
+    db.exec('ALTER TABLE user_submissions ADD COLUMN venue_type TEXT');
   }
 }

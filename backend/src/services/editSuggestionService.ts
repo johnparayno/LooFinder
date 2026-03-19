@@ -74,6 +74,24 @@ function validateSuggestedFieldValues(fields: Record<string, unknown>): string[]
           errors.push('temporary_closed must be a boolean');
         }
         break;
+      case 'venue_type': {
+        const validVenueTypes = [
+          'supermarket',
+          'library',
+          'museum',
+          'cafe_restaurant',
+          'shopping_centre',
+          'train_station',
+          'bus_station',
+          'other',
+        ];
+        if (value !== null && value !== undefined) {
+          if (typeof value !== 'string' || !validVenueTypes.includes(value)) {
+            errors.push(`venue_type must be one of: ${validVenueTypes.join(', ')} or null`);
+          }
+        }
+        break;
+      }
     }
   }
 

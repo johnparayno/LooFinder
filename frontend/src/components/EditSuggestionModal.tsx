@@ -3,8 +3,10 @@
  */
 import { useState } from 'react';
 import type { Toilet } from '../services/api';
+import { getToiletDisplayName } from '../utils/toiletDisplay';
 import { submitEditSuggestion } from '../services/api';
-import type { ToiletCategory } from '../services/api';
+import type { ToiletCategory, VenueTypeFilter } from '../services/api';
+import { VENUE_TYPE_OPTIONS } from '../utils/venueDisplay';
 
 interface EditSuggestionModalProps {
   toilet: Toilet;
@@ -24,6 +26,9 @@ export function EditSuggestionModal({ toilet, onClose, onSuccess }: EditSuggesti
   const [openingHours, setOpeningHours] = useState(toilet.opening_hours ?? '');
   const [accessNotes, setAccessNotes] = useState(toilet.access_notes ?? '');
   const [category, setCategory] = useState<ToiletCategory>(toilet.category);
+  const [venueType, setVenueType] = useState<VenueTypeFilter | ''>(
+    (toilet.venue_type as VenueTypeFilter) || ''
+  );
   const [temporaryClosed, setTemporaryClosed] = useState(toilet.temporary_closed);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -40,6 +45,9 @@ export function EditSuggestionModal({ toilet, onClose, onSuccess }: EditSuggesti
       fields.access_notes = accessNotes.trim() || null;
     }
     if (category !== toilet.category) fields.category = category;
+    if (venueType !== (toilet.venue_type || '')) {
+      fields.venue_type = venueType || null;
+    }
     if (temporaryClosed !== toilet.temporary_closed) fields.temporary_closed = temporaryClosed;
     return fields;
   };
@@ -155,7 +163,7 @@ export function EditSuggestionModal({ toilet, onClose, onSuccess }: EditSuggesti
       >
         <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Suggest edit</h3>
         <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--color-text-muted)' }}>
-          {toilet.name}
+          {getToiletDisplayName(toilet.name)}
         </p>
 
         <form onSubmit={handleSubmit}>
@@ -229,6 +237,26 @@ export function EditSuggestionModal({ toilet, onClose, onSuccess }: EditSuggesti
               style={inputStyle}
             >
               {CATEGORY_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ marginBottom: 12 }}>
+            <label htmlFor="edit-venue-type" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 500 }}>
+              Venue type
+            </label>
+            <select
+              id="edit-venue-type"
+              value={venueType}
+              onChange={(e) => setVenueType((e.target.value || '') as VenueTypeFilter | '')}
+              disabled={submitting}
+              style={inputStyle}
+            >
+              <option value="">— Not specified —</option>
+              {VENUE_TYPE_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
                   {opt.label}
                 </option>

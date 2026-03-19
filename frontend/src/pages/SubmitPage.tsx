@@ -3,12 +3,23 @@
  */
 import { useState } from 'react';
 import { submitToilet } from '../services/api';
-import type { ToiletCategory } from '../services/api';
+import type { ToiletCategory, VenueTypeFilter } from '../services/api';
 
 const CATEGORIES: { value: ToiletCategory; label: string }[] = [
   { value: 'free', label: 'Free' },
   { value: 'code_required', label: 'Code required' },
   { value: 'purchase_required', label: 'Purchase required' },
+];
+
+const VENUE_TYPES: { value: VenueTypeFilter; label: string }[] = [
+  { value: 'supermarket', label: 'Supermarket' },
+  { value: 'library', label: 'Library' },
+  { value: 'museum', label: 'Museum' },
+  { value: 'cafe_restaurant', label: 'Café / Restaurant' },
+  { value: 'shopping_centre', label: 'Shopping centre' },
+  { value: 'train_station', label: 'Train station' },
+  { value: 'bus_station', label: 'Bus station' },
+  { value: 'other', label: 'Other' },
 ];
 
 export function SubmitPage() {
@@ -17,6 +28,7 @@ export function SubmitPage() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [category, setCategory] = useState<ToiletCategory>('free');
+  const [venueType, setVenueType] = useState<VenueTypeFilter | ''>('');
   const [accessNotes, setAccessNotes] = useState('');
   const [openingHours, setOpeningHours] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,6 +84,7 @@ export function SubmitPage() {
         category,
         access_notes: accessNotes.trim() || null,
         opening_hours: openingHours.trim() || null,
+        venue_type: venueType || null,
       });
       setSuccess(true);
       setName('');
@@ -80,6 +93,7 @@ export function SubmitPage() {
       setLongitude('');
       setAccessNotes('');
       setOpeningHours('');
+      setVenueType('');
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Submission failed');
     } finally {
@@ -245,6 +259,35 @@ export function SubmitPage() {
               </option>
             ))}
           </select>
+        </div>
+
+        <div style={{ marginBottom: 16 }}>
+          <label htmlFor="venue_type" style={{ display: 'block', marginBottom: 4, fontWeight: 600 }}>
+            Venue type (optional)
+          </label>
+          <select
+            id="venue_type"
+            value={venueType}
+            onChange={(e) => setVenueType(e.target.value as VenueTypeFilter | '')}
+            style={{
+              width: '100%',
+              padding: '10px 12px',
+              fontSize: 16,
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+              boxSizing: 'border-box',
+            }}
+          >
+            <option value="">— Select venue type —</option>
+            {VENUE_TYPES.map((v) => (
+              <option key={v.value} value={v.value}>
+                {v.label}
+              </option>
+            ))}
+          </select>
+          <p style={{ fontSize: 12, color: 'var(--color-text-muted)', marginTop: 4 }}>
+            e.g. Supermarket, library, museum, café
+          </p>
         </div>
 
         <div style={{ marginBottom: 16 }}>

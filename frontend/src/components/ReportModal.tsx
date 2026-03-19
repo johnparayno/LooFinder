@@ -3,6 +3,7 @@
  */
 import { useState } from 'react';
 import type { Toilet } from '../services/api';
+import { getToiletDisplayName } from '../utils/toiletDisplay';
 import { submitReport } from '../services/api';
 
 interface ReportModalProps {
@@ -116,7 +117,7 @@ export function ReportModal({ toilet, onClose, onSuccess }: ReportModalProps) {
       >
         <h3 style={{ margin: '0 0 8px', fontSize: 18 }}>Report incorrect information</h3>
           <p style={{ margin: '0 0 16px', fontSize: 14, color: 'var(--color-text-muted)' }}>
-          {toilet.name}
+          {getToiletDisplayName(toilet.name)}
         </p>
 
         <form onSubmit={handleSubmit}>

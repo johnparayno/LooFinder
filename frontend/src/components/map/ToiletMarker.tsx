@@ -56,7 +56,8 @@ export function ToiletMarker({ toilets, selectedToilet, onSelect }: ToiletMarker
     <MarkerClusterGroup
       disableClusteringAtZoom={15}
       maxClusterRadius={60}
-      spiderfyOnMaxZoom={true}
+      spiderfyOnMaxZoom={false}
+      zoomToBoundsOnClick={true}
       showCoverageOnHover={false}
       chunkedLoading={true}
     >

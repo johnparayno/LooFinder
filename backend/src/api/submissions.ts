@@ -14,7 +14,8 @@ router.post('/', (req: Request, res: Response) => {
     return;
   }
 
-  const { name, address, latitude, longitude, category, access_notes, opening_hours } = body;
+  const { name, address, latitude, longitude, category, access_notes, opening_hours, venue_type } =
+    body;
 
   if (typeof name !== 'string' || typeof address !== 'string') {
     res.status(400).json({ error: 'name and address are required' });
@@ -36,6 +37,19 @@ router.post('/', (req: Request, res: Response) => {
     return;
   }
 
+  const validVenueTypes = [
+    'supermarket',
+    'library',
+    'museum',
+    'cafe_restaurant',
+    'shopping_centre',
+    'train_station',
+    'bus_station',
+    'other',
+  ];
+  const venueTypeValue =
+    typeof venue_type === 'string' && validVenueTypes.includes(venue_type) ? venue_type : undefined;
+
   try {
     const result = createSubmission({
       name,
@@ -45,6 +59,7 @@ router.post('/', (req: Request, res: Response) => {
       category,
       access_notes: access_notes ?? null,
       opening_hours: opening_hours ?? null,
+      venue_type: venueTypeValue ?? null,
     });
 
     res.status(201).json({

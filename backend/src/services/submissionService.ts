@@ -5,6 +5,16 @@ import { randomUUID } from 'crypto';
 import { getDatabase } from '../db/schema.js';
 import { validateUserSubmission } from '../models/userSubmission.js';
 
+export type VenueType =
+  | 'supermarket'
+  | 'library'
+  | 'museum'
+  | 'cafe_restaurant'
+  | 'shopping_centre'
+  | 'train_station'
+  | 'bus_station'
+  | 'other';
+
 export interface CreateSubmissionInput {
   name: string;
   address: string;
@@ -13,6 +23,7 @@ export interface CreateSubmissionInput {
   category: 'free' | 'code_required' | 'purchase_required';
   access_notes?: string | null;
   opening_hours?: string | null;
+  venue_type?: VenueType | null;
 }
 
 export interface CreateSubmissionResult {
@@ -50,25 +61,38 @@ export function createSubmission(input: CreateSubmissionInput): CreateSubmission
     possibleDuplicate = true;
   }
 
+  const validVenueTypes = [
+    'supermarket',
+    'library',
+    'museum',
+    'cafe_restaurant',
+    'shopping_centre',
+    'train_station',
+    'bus_station',
+    'other',
+  ];
+  const venueType =
+    input.venue_type && validVenueTypes.includes(input.venue_type) ? input.venue_type : null;
+
   const insertToilet = db.prepare(`
     INSERT INTO toilets (
       id, name, address, latitude, longitude, category,
       access_notes, access_code, opening_hours, source_type, verification_status,
-      temporary_closed
+      temporary_closed, venue_type
     ) VALUES (
       @id, @name, @address, @latitude, @longitude, @category,
       @access_notes, NULL, @opening_hours, 'user_submitted', 'unverified',
-      0
+      0, @venue_type
     )
   `);
 
   const insertSubmission = db.prepare(`
     INSERT INTO user_submissions (
       id, name, address, latitude, longitude, category,
-      access_notes, opening_hours, status, toilet_id
+      access_notes, opening_hours, status, toilet_id, venue_type
     ) VALUES (
       @id, @name, @address, @latitude, @longitude, @category,
-      @access_notes, @opening_hours, 'pending', @toilet_id
+      @access_notes, @opening_hours, 'pending', @toilet_id, @venue_type
     )
   `);
 
@@ -81,6 +105,7 @@ export function createSubmission(input: CreateSubmissionInput): CreateSubmission
     category: input.category,
     access_notes: input.access_notes?.trim() || null,
     opening_hours: input.opening_hours?.trim() || null,
+    venue_type: venueType,
   };
 
   const submissionData: Record<string, unknown> = {
@@ -93,6 +118,7 @@ export function createSubmission(input: CreateSubmissionInput): CreateSubmission
     access_notes: input.access_notes?.trim() || null,
     opening_hours: input.opening_hours?.trim() || null,
     toilet_id: toiletId,
+    venue_type: venueType,
   };
 
   const transaction = db.transaction(() => {

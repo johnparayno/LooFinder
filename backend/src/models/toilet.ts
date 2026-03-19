@@ -7,6 +7,17 @@ export type VerificationStatus = 'verified' | 'unverified' | 'needs_review';
 
 export type ToiletType = 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
 
+export type VenueType =
+  | 'supermarket'
+  | 'library'
+  | 'museum'
+  | 'cafe_restaurant'
+  | 'shopping_centre'
+  | 'train_station'
+  | 'bus_station'
+  | 'other'
+  | null;
+
 export interface Toilet {
   id: string;
   name: string;
@@ -35,6 +46,7 @@ export interface Toilet {
   placement: string | null;
   year_round: boolean;
   round_the_clock: boolean;
+  venue_type: VenueType;
 }
 
 export interface ToiletInsert {
@@ -63,9 +75,20 @@ export interface ToiletInsert {
   placement?: string | null;
   year_round?: boolean;
   round_the_clock?: boolean;
+  venue_type?: VenueType;
 }
 
 const CATEGORIES: ToiletCategory[] = ['free', 'code_required', 'purchase_required'];
+const VENUE_TYPES: VenueType[] = [
+  'supermarket',
+  'library',
+  'museum',
+  'cafe_restaurant',
+  'shopping_centre',
+  'train_station',
+  'bus_station',
+  'other',
+];
 const SOURCE_TYPES: SourceType[] = ['public_dataset', 'user_submitted'];
 const VERIFICATION_STATUSES: VerificationStatus[] = ['verified', 'unverified', 'needs_review'];
 
@@ -139,5 +162,9 @@ export function rowToToilet(row: Record<string, unknown>): Toilet {
     placement: (row.placement as string) ?? null,
     year_round: row.year_round != null ? Boolean(row.year_round) : true,
     round_the_clock: Boolean(row.round_the_clock),
+    venue_type:
+      row.venue_type && VENUE_TYPES.includes(row.venue_type as VenueType)
+        ? (row.venue_type as VenueType)
+        : null,
   };
 }

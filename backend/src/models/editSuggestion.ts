@@ -12,6 +12,7 @@ export const VALID_TOILET_FIELDS = new Set([
   'access_notes',
   'opening_hours',
   'temporary_closed',
+  'venue_type',
 ]);
 
 export interface EditSuggestion {

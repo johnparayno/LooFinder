@@ -4,6 +4,16 @@
 
 export type ToiletCategory = 'free' | 'code_required' | 'purchase_required';
 export type ToiletType = 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
+export type VenueType =
+  | 'supermarket'
+  | 'library'
+  | 'museum'
+  | 'cafe_restaurant'
+  | 'shopping_centre'
+  | 'train_station'
+  | 'bus_station'
+  | 'other'
+  | null;
 export type SourceType = 'public_dataset' | 'user_submitted';
 export type VerificationStatus = 'verified' | 'unverified' | 'needs_review';
 
@@ -33,12 +43,16 @@ export interface Toilet {
   placement?: string | null;
   year_round?: boolean;
   round_the_clock?: boolean;
+  venue_type?: VenueType;
 }
+
+export type VenueTypeFilter = Exclude<VenueType, null>;
 
 export interface ListToiletsParams {
   bbox?: string;
   category?: ToiletCategory;
   verification_status?: VerificationStatus;
+  venue_type?: VenueTypeFilter;
   search?: string;
 }
 
@@ -61,6 +75,7 @@ export async function listToilets(params: ListToiletsParams = {}): Promise<Toile
   if (params.bbox) searchParams.set('bbox', params.bbox);
   if (params.category) searchParams.set('category', params.category);
   if (params.verification_status) searchParams.set('verification_status', params.verification_status);
+  if (params.venue_type) searchParams.set('venue_type', params.venue_type);
   if (params.search) searchParams.set('search', params.search);
   const qs = searchParams.toString();
   const path = qs ? `/toilets?${qs}` : '/toilets';
@@ -96,6 +111,7 @@ export interface SubmitToiletInput {
   category: ToiletCategory;
   access_notes?: string | null;
   opening_hours?: string | null;
+  venue_type?: VenueTypeFilter | null;
 }
 
 export interface SubmitToiletResponse {
@@ -115,6 +131,7 @@ export async function submitToilet(input: SubmitToiletInput): Promise<SubmitToil
       category: input.category,
       access_notes: input.access_notes ?? null,
       opening_hours: input.opening_hours ?? null,
+      venue_type: input.venue_type ?? null,
     }),
   });
 }

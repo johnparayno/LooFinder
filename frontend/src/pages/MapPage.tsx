@@ -4,7 +4,7 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
-import type { Toilet, ToiletCategory, VerificationStatus } from '../services/api';
+import type { Toilet, ToiletCategory, VerificationStatus, VenueTypeFilter } from '../services/api';
 import { listToilets, findNearestToilet } from '../services/api';
 import {
   MapShell,
@@ -17,6 +17,7 @@ import {
   type BottomSheetSnap,
 } from '../components/map';
 import { getToiletImageUrl } from '../utils/toiletImage';
+import { getToiletDisplayName } from '../utils/toiletDisplay';
 
 import '../components/map/map.css';
 
@@ -24,23 +25,33 @@ const DEFAULT_CENTER: [number, number] = [55.6761, 12.5683];
 const DEFAULT_ZOOM = 16;
 
 function MapController({
-  selectedToilet,
   centerOn,
   onBoundsChange,
 }: {
-  selectedToilet: Toilet | null;
   centerOn: [number, number] | null;
   onBoundsChange: (bbox: string) => void;
 }) {
   const map = useMap();
 
+  // Don't flyTo on marker select - it causes map shake. User can pan/zoom manually.
+
+  // Fix map display on mobile: invalidateSize when ready and on resize (address bar, orientation)
   useEffect(() => {
-    if (selectedToilet) {
-      map.flyTo([selectedToilet.latitude, selectedToilet.longitude], 17, {
-        duration: 400,
-      });
-    }
-  }, [map, selectedToilet]);
+    const onResize = () => {
+      map.invalidateSize();
+    };
+    map.whenReady(() => {
+      map.invalidateSize();
+      // Mobile Safari may need a short delay for layout to settle
+      setTimeout(() => map.invalidateSize(), 100);
+    });
+    window.addEventListener('resize', onResize);
+    window.visualViewport?.addEventListener('resize', onResize);
+    return () => {
+      window.removeEventListener('resize', onResize);
+      window.visualViewport?.removeEventListener('resize', onResize);
+    };
+  }, [map]);
 
   useEffect(() => {
     if (centerOn) {
@@ -89,6 +100,7 @@ export function MapPage() {
   const [error, setError] = useState<string | null>(null);
   const [category, setCategory] = useState<ToiletCategory | ''>('');
   const [verificationStatus, setVerificationStatus] = useState<VerificationStatus | ''>('');
+  const [venueType, setVenueType] = useState<VenueTypeFilter | ''>('');
   const [search, setSearch] = useState('');
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
   const [locationUnavailable, setLocationUnavailable] = useState(false);
@@ -101,6 +113,7 @@ export function MapPage() {
         const params: Parameters<typeof listToilets>[0] = { bbox };
         if (category) params.category = category;
         if (verificationStatus) params.verification_status = verificationStatus;
+        if (venueType) params.venue_type = venueType;
         if (searchQuery !== undefined ? searchQuery : search) {
           params.search = searchQuery !== undefined ? searchQuery : search;
         }
@@ -116,7 +129,7 @@ export function MapPage() {
         setLoading(false);
       }
     },
-    [category, verificationStatus, search]
+    [category, verificationStatus, venueType, search]
   );
 
   const handleBoundsChange = useCallback(
@@ -136,6 +149,7 @@ export function MapPage() {
         const params: Parameters<typeof listToilets>[0] = {};
         if (category) params.category = category;
         if (verificationStatus) params.verification_status = verificationStatus;
+        if (venueType) params.venue_type = venueType;
         if (query) params.search = query;
         const data = await listToilets(params);
         setToilets(data);
@@ -153,13 +167,13 @@ export function MapPage() {
         setLoading(false);
       }
     },
-    [category, verificationStatus]
+    [category, verificationStatus, venueType]
   );
 
   useEffect(() => {
     setLoading(true);
     fetchToilets(lastBboxRef.current);
-  }, [category, verificationStatus, fetchToilets]);
+  }, [category, verificationStatus, venueType, fetchToilets]);
 
   const handleFindNearest = useCallback(async () => {
     const latLng = userLocation ?? DEFAULT_CENTER;
@@ -204,6 +218,7 @@ export function MapPage() {
           zoom={DEFAULT_ZOOM}
           style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
+          zoomControl={false}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
@@ -216,7 +231,6 @@ export function MapPage() {
             onSelect={setSelectedToilet}
           />
           <MapController
-            selectedToilet={selectedToilet}
             centerOn={centerOn}
             onBoundsChange={handleBoundsChange}
           />
@@ -226,6 +240,7 @@ export function MapPage() {
         <div className="map-floating-top">
           <MapSearchBar
             onSearch={handleSearch}
+            onLocateMe={handleLocateMe}
             onAddressSelect={(address, lat, lng) => {
               setSearch(address);
               setCenterOn([lat, lng]);
@@ -239,21 +254,15 @@ export function MapPage() {
           <FilterPills
             category={category}
             verificationStatus={verificationStatus}
+            venueType={venueType}
             onCategoryChange={setCategory}
             onVerificationStatusChange={setVerificationStatus}
+            onVenueTypeChange={setVenueType}
           />
         </div>
 
         {/* Floating actions */}
         <div className="map-floating-actions">
-          <button
-            type="button"
-            className="map-floating-btn"
-            onClick={handleLocateMe}
-            aria-label="Locate me"
-          >
-            <LocateIcon />
-          </button>
           <button
             type="button"
             className="map-floating-btn primary"
@@ -289,7 +298,7 @@ export function MapPage() {
                 />
               </div>
               <div className="map-toilet-overlay-body">
-                <h4 className="map-toilet-overlay-title">{selectedToilet.name}</h4>
+                <h4 className="map-toilet-overlay-title">{getToiletDisplayName(selectedToilet.name)}</h4>
                 <p className="map-toilet-overlay-address">{selectedToilet.address}</p>
                 <p className="map-toilet-overlay-meta">
                   {selectedToilet.opening_hours ?? 'Hours not specified'}
@@ -351,15 +360,6 @@ export function MapPage() {
         )}
       </div>
     </MapShell>
-  );
-}
-
-function LocateIcon() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="3" />
-      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
-    </svg>
   );
 }
 

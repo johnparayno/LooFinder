@@ -4,6 +4,8 @@
 import { useState } from 'react';
 import type { Toilet } from '../services/api';
 import { getToiletImageUrl } from '../utils/toiletImage';
+import { getToiletDisplayName } from '../utils/toiletDisplay';
+import { getVenueTypeLabel } from '../utils/venueDisplay';
 import { ReportModal } from './ReportModal';
 import { EditSuggestionModal } from './EditSuggestionModal';
 
@@ -17,6 +19,11 @@ const CATEGORY_LABELS: Record<Toilet['category'], string> = {
   code_required: 'Code required',
   purchase_required: 'Purchase required',
 };
+
+/** Only show category badge for free toilets; paid/code toilets don't need a label. */
+function shouldShowCategoryBadge(category: Toilet['category']): boolean {
+  return category === 'free';
+}
 
 const TOILET_TYPE_LABELS: Record<NonNullable<Toilet['toilet_type']>, string> = {
   handicap: 'Handicap',
@@ -38,13 +45,20 @@ export function ToiletCard({ toilet, onClose }: ToiletCardProps) {
         <div className="toilet-card-hero">
           <img
             src={imageUrl}
-            alt={toilet.name}
+            alt={getToiletDisplayName(toilet.name)}
             className="toilet-card-hero-image"
           />
           <div className="toilet-card-badges">
-            <span className="toilet-card-badge toilet-card-badge-primary">
-              {CATEGORY_LABELS[toilet.category]}
-            </span>
+            {shouldShowCategoryBadge(toilet.category) && (
+              <span className="toilet-card-badge toilet-card-badge-primary">
+                {CATEGORY_LABELS[toilet.category]}
+              </span>
+            )}
+            {toilet.venue_type && getVenueTypeLabel(toilet.venue_type) && (
+              <span className="toilet-card-badge toilet-card-badge-secondary">
+                {getVenueTypeLabel(toilet.venue_type)}
+              </span>
+            )}
             {toilet.toilet_type && TOILET_TYPE_LABELS[toilet.toilet_type] && (
               <span className="toilet-card-badge toilet-card-badge-secondary">
                 {TOILET_TYPE_LABELS[toilet.toilet_type]}
@@ -59,7 +73,7 @@ export function ToiletCard({ toilet, onClose }: ToiletCardProps) {
           </div>
         </div>
         <div className="toilet-card-title-row">
-          <h3 className="toilet-card-title">{toilet.name}</h3>
+          <h3 className="toilet-card-title">{getToiletDisplayName(toilet.name)}</h3>
           {onClose && (
             <button
               onClick={onClose}

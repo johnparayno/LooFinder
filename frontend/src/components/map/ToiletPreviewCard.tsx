@@ -5,6 +5,8 @@
 import { Link } from 'react-router-dom';
 import type { Toilet } from '../../services/api';
 import { getToiletImageUrl } from '../../utils/toiletImage';
+import { getToiletDisplayName } from '../../utils/toiletDisplay';
+import { getVenueTypeLabel } from '../../utils/venueDisplay';
 import { formatDistance, haversineMeters } from '../../utils/distance';
 
 const CATEGORY_LABELS: Record<Toilet['category'], string> = {
@@ -12,6 +14,11 @@ const CATEGORY_LABELS: Record<Toilet['category'], string> = {
   code_required: 'Code required',
   purchase_required: 'Paid',
 };
+
+/** Only show category badge for free toilets. */
+function shouldShowCategoryBadge(category: Toilet['category']): boolean {
+  return category === 'free';
+}
 
 interface ToiletPreviewCardProps {
   toilet: Toilet;
@@ -60,9 +67,16 @@ export function ToiletPreviewCard({
           className="toilet-preview-card-image"
         />
         <div className="toilet-preview-card-badges">
-          <span className="toilet-preview-card-badge toilet-preview-card-badge-category">
-            {CATEGORY_LABELS[toilet.category]}
-          </span>
+          {shouldShowCategoryBadge(toilet.category) && (
+            <span className="toilet-preview-card-badge toilet-preview-card-badge-category">
+              {CATEGORY_LABELS[toilet.category]}
+            </span>
+          )}
+          {toilet.venue_type && getVenueTypeLabel(toilet.venue_type) && (
+            <span className="toilet-preview-card-badge toilet-preview-card-badge-venue">
+              {getVenueTypeLabel(toilet.venue_type)}
+            </span>
+          )}
           {toilet.temporary_closed && (
             <span className="toilet-preview-card-badge toilet-preview-card-badge-closed">
               Closed
@@ -76,7 +90,7 @@ export function ToiletPreviewCard({
         </div>
       </div>
       <div className="toilet-preview-card-body">
-        <h4 className="toilet-preview-card-name">{toilet.name}</h4>
+        <h4 className="toilet-preview-card-name">{getToiletDisplayName(toilet.name)}</h4>
         <div className="toilet-preview-card-meta">
           {distanceStr && (
             <span className="toilet-preview-card-distance">{distanceStr}</span>

@@ -10,15 +10,21 @@ import {
 
 const router = Router();
 
-// GET /api/toilets - list with optional bbox, category, verification_status, search
+const VALID_VENUE_TYPES = [
+  'supermarket',
+  'library',
+  'museum',
+  'cafe_restaurant',
+  'shopping_centre',
+  'train_station',
+  'bus_station',
+  'other',
+] as const;
+
+// GET /api/toilets - list with optional bbox, category, verification_status, venue_type, search
 router.get('/', (req: Request, res: Response) => {
-  const { bbox, category, verification_status, search } = req.query;
-  const params: {
-    bbox?: string;
-    category?: 'free' | 'code_required' | 'purchase_required';
-    verification_status?: 'verified' | 'unverified' | 'needs_review';
-    search?: string;
-  } = {};
+  const { bbox, category, verification_status, venue_type, search } = req.query;
+  const params: Parameters<typeof listToilets>[0] = {};
 
   if (typeof bbox === 'string') params.bbox = bbox;
   if (category === 'free' || category === 'code_required' || category === 'purchase_required') {
@@ -30,6 +36,9 @@ router.get('/', (req: Request, res: Response) => {
     verification_status === 'needs_review'
   ) {
     params.verification_status = verification_status;
+  }
+  if (typeof venue_type === 'string' && VALID_VENUE_TYPES.includes(venue_type as (typeof VALID_VENUE_TYPES)[number])) {
+    params.venue_type = venue_type as (typeof VALID_VENUE_TYPES)[number];
   }
   if (typeof search === 'string' && search.trim()) params.search = search.trim();
 

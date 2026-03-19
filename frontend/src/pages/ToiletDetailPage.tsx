@@ -6,6 +6,8 @@ import { useParams, Link } from 'react-router-dom';
 import type { Toilet } from '../services/api';
 import { getToiletById } from '../services/api';
 import { getToiletImageUrl } from '../utils/toiletImage';
+import { getToiletDisplayName } from '../utils/toiletDisplay';
+import { getVenueTypeLabel } from '../utils/venueDisplay';
 import { ReportModal } from '../components/ReportModal';
 import { EditSuggestionModal } from '../components/EditSuggestionModal';
 
@@ -14,6 +16,10 @@ const CATEGORY_LABELS: Record<Toilet['category'], string> = {
   code_required: 'Code required',
   purchase_required: 'Purchase required',
 };
+
+function shouldShowCategoryBadge(category: Toilet['category']): boolean {
+  return category === 'free';
+}
 
 const TOILET_TYPE_LABELS: Record<NonNullable<Toilet['toilet_type']>, string> = {
   handicap: 'Handicap',
@@ -69,9 +75,10 @@ export function ToiletDetailPage() {
 
   const handleShare = async () => {
     if (!toilet) return;
+    const displayName = getToiletDisplayName(toilet.name);
     const shareData: ShareData = {
-      title: toilet.name,
-      text: `${toilet.name} - ${toilet.address}`,
+      title: displayName,
+      text: `${displayName} - ${toilet.address}`,
       url: window.location.href,
     };
     if (navigator.share) {
@@ -111,15 +118,22 @@ export function ToiletDetailPage() {
   return (
     <div className="toilet-detail-page">
       <div className="toilet-detail-hero">
-        <img src={imageUrl} alt={toilet.name} className="toilet-detail-hero-image" />
+        <img src={imageUrl} alt={getToiletDisplayName(toilet.name)} className="toilet-detail-hero-image" />
         <div className="toilet-detail-hero-overlay">
           <Link to="/map" className="toilet-detail-back" aria-label="Back to map">
             ← Back to map
           </Link>
           <div className="toilet-detail-badges">
-            <span className="toilet-detail-badge toilet-detail-badge-primary">
-              {CATEGORY_LABELS[toilet.category]}
-            </span>
+            {shouldShowCategoryBadge(toilet.category) && (
+              <span className="toilet-detail-badge toilet-detail-badge-primary">
+                {CATEGORY_LABELS[toilet.category]}
+              </span>
+            )}
+            {toilet.venue_type && getVenueTypeLabel(toilet.venue_type) && (
+              <span className="toilet-detail-badge toilet-detail-badge-secondary">
+                {getVenueTypeLabel(toilet.venue_type)}
+              </span>
+            )}
             {toilet.toilet_type && TOILET_TYPE_LABELS[toilet.toilet_type] && (
               <span className="toilet-detail-badge toilet-detail-badge-secondary">
                 {TOILET_TYPE_LABELS[toilet.toilet_type]}
@@ -136,7 +150,7 @@ export function ToiletDetailPage() {
       </div>
 
       <div className="toilet-detail-content">
-        <h1 className="toilet-detail-title">{toilet.name}</h1>
+        <h1 className="toilet-detail-title">{getToiletDisplayName(toilet.name)}</h1>
         <p className="toilet-detail-address">{toilet.address}</p>
 
         <div className="toilet-detail-actions">
@@ -182,6 +196,9 @@ export function ToiletDetailPage() {
                 toilet.access_notes
               )}
             </p>
+          )}
+          {toilet.venue_type && getVenueTypeLabel(toilet.venue_type) && (
+            <p><strong>Venue:</strong> {getVenueTypeLabel(toilet.venue_type)}</p>
           )}
           {toilet.placement && (
             <p><strong>Placement:</strong> {toilet.placement}</p>

@@ -28,7 +28,7 @@ function random4DigitCode(): string {
 
 /** Fill default values for extended model fields when not provided */
 function withExtendedDefaults(
-  t: Omit<ToiletInsert, 'id'> & Partial<Pick<ToiletInsert, 'year_round' | 'round_the_clock' | 'payment'>>
+  t: Omit<ToiletInsert, 'id'> & Partial<Pick<ToiletInsert, 'year_round' | 'round_the_clock' | 'payment' | 'venue_type'>>
 ): Omit<ToiletInsert, 'id'> {
   const roundTheClock =
     t.round_the_clock ?? /24\/7|24-7|døgn|round.the.clock/i.test(t.opening_hours || '');
@@ -46,6 +46,7 @@ function withExtendedDefaults(
     placement: t.placement ?? null,
     year_round: t.year_round ?? true,
     round_the_clock: roundTheClock,
+    venue_type: t.venue_type ?? null,
   };
 }
 
@@ -71,6 +72,7 @@ const SAMPLE_TOILETS: Omit<ToiletInsert, 'id'>[] = [
     latitude: 55.6835,
     longitude: 12.5711,
     category: 'purchase_required',
+    venue_type: 'train_station',
     access_notes: 'Coin required',
     access_code: null,
     opening_hours: 'Mon–Fri 6–24, Sat–Sun 7–24',
@@ -85,6 +87,7 @@ const SAMPLE_TOILETS: Omit<ToiletInsert, 'id'>[] = [
     latitude: 55.6794,
     longitude: 12.5881,
     category: 'code_required',
+    venue_type: 'train_station',
     access_notes: 'Code at station info',
     access_code: random4DigitCode(),
     opening_hours: '24/7',
@@ -127,6 +130,7 @@ const SAMPLE_TOILETS: Omit<ToiletInsert, 'id'>[] = [
     latitude: 55.6736,
     longitude: 12.5649,
     category: 'purchase_required',
+    venue_type: 'museum',
     access_notes: 'Inside Tivoli - ticket required',
     access_code: null,
     opening_hours: 'Varies with Tivoli hours',
@@ -884,13 +888,13 @@ export async function seedDatabase(dbPath?: string): Promise<{ count: number; so
       access_notes, access_code, opening_hours, source_type, verification_status,
       last_verified_at, temporary_closed, created_at, updated_at,
       findtoilet_nid, toilet_type, payment, manned, changing_table, tap, needle_container,
-      contact, image_url, placement, year_round, round_the_clock
+      contact, image_url, placement, year_round, round_the_clock, venue_type
     ) VALUES (
       @id, @name, @address, @latitude, @longitude, @category,
       @access_notes, @access_code, @opening_hours, @source_type, @verification_status,
       @last_verified_at, @temporary_closed, datetime('now'), datetime('now'),
       @findtoilet_nid, @toilet_type, @payment, @manned, @changing_table, @tap, @needle_container,
-      @contact, @image_url, @placement, @year_round, @round_the_clock
+      @contact, @image_url, @placement, @year_round, @round_the_clock, @venue_type
     )
   `);
 
@@ -922,6 +926,7 @@ export async function seedDatabase(dbPath?: string): Promise<{ count: number; so
         placement: row.placement ?? null,
         year_round: (row.year_round ?? true) ? 1 : 0,
         round_the_clock: (row.round_the_clock ?? false) ? 1 : 0,
+        venue_type: row.venue_type ?? null,
       });
     }
   });

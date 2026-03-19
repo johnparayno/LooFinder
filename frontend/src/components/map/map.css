@@ -1,12 +1,13 @@
 /* Map experience - Airbnb-inspired design */
 
-/* Map shell: full viewport map canvas */
+/* Map shell: full viewport map canvas - explicit height for mobile Leaflet */
 .map-shell {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 400px;
-  flex: 1;
+  min-height: 300px;
+  min-height: 50vh;
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
 }
@@ -139,6 +140,19 @@
 .map-search-suggestion:hover,
 .map-search-suggestion.selected {
   background: var(--color-bg-soft);
+}
+
+.map-search-suggestion-near-me {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.map-search-near-me-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
 }
 
 /* Filter pills */
@@ -495,6 +509,11 @@
   color: white;
 }
 
+.toilet-preview-card-badge-venue {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+}
+
 .toilet-preview-card-body {
   flex: 1;
   min-width: 0;
@@ -566,16 +585,20 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-/* Map wrapper - full height */
+/* Map wrapper - full height, explicit for Leaflet on mobile */
 .map-wrapper {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
   background: var(--color-bg-soft);
 }
 
 .map-wrapper .leaflet-container {
-  height: 100%;
+  height: 100% !important;
   width: 100%;
+  min-height: 300px;
   background: var(--color-bg-soft);
 }
 

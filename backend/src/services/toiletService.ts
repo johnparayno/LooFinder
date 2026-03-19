@@ -5,10 +5,21 @@ import { getDatabase } from '../db/schema.js';
 import type { Toilet } from '../models/toilet.js';
 import { rowToToilet } from '../models/toilet.js';
 
+export type VenueType =
+  | 'supermarket'
+  | 'library'
+  | 'museum'
+  | 'cafe_restaurant'
+  | 'shopping_centre'
+  | 'train_station'
+  | 'bus_station'
+  | 'other';
+
 export interface ListToiletsParams {
   bbox?: string; // minLat,minLng,maxLat,maxLng
   category?: 'free' | 'code_required' | 'purchase_required';
   verification_status?: 'verified' | 'unverified' | 'needs_review';
+  venue_type?: VenueType;
   search?: string; // address, neighborhood, location name (text search)
 }
 
@@ -41,6 +52,11 @@ export function listToilets(params: ListToiletsParams = {}): Toilet[] {
   if (params.verification_status) {
     conditions.push('verification_status = @verification_status');
     values.verification_status = params.verification_status;
+  }
+
+  if (params.venue_type) {
+    conditions.push('venue_type = @venue_type');
+    values.venue_type = params.venue_type;
   }
 
   if (params.search && params.search.trim()) {
