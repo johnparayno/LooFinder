@@ -1,10 +1,28 @@
 import { Outlet, Link, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 
 export function Layout() {
   const location = useLocation();
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   return (
     <div className="layout">
+      {!isOnline && (
+        <div className="pwa-offline-banner" role="status">
+          You&apos;re offline. Cached content may be shown.
+        </div>
+      )}
       <nav className="layout-nav">
         <Link to="/" className="layout-nav-brand">
           LooFinder

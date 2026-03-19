@@ -1,4 +1,15 @@
 /* GoMore-inspired design system - LooFinder */
+
+/* PWA offline banner */
+.pwa-offline-banner {
+  background: var(--color-warning);
+  color: white;
+  text-align: center;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
 
 * {
@@ -9,6 +20,9 @@ html, body, #root {
   margin: 0;
   padding: 0;
   height: 100%;
+  width: 100%;
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
 :root {
@@ -46,13 +60,234 @@ html, body, #root {
   border: none !important;
 }
 
+/* Airbnb-style toilet popup */
+.toilet-popup .leaflet-popup-content-wrapper {
+  padding: 0;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.toilet-popup .leaflet-popup-content {
+  margin: 0;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.toilet-popup-card {
+  cursor: pointer;
+  background: var(--color-bg);
+}
+
+.toilet-popup-card:hover {
+  background: var(--color-bg-soft);
+}
+
+.toilet-popup-image-wrap {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  overflow: hidden;
+  background: var(--color-border-light);
+}
+
+.toilet-popup-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.toilet-popup-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: 600;
+  background: var(--color-primary);
+  color: white;
+}
+
+.toilet-popup-badge-muted {
+  left: auto;
+  right: 8px;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.toilet-popup-body {
+  padding: 12px 14px;
+}
+
+.toilet-popup-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.toilet-popup-address {
+  margin: 0 0 6px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.toilet-popup-meta {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+
+/* Airbnb-style toilet detail card */
+.toilet-card {
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+
+.toilet-card-header {
+  padding: 0 0 12px;
+}
+
+.toilet-card-hero {
+  position: relative;
+  width: 100%;
+  height: 200px;
+  overflow: hidden;
+  background: var(--color-border-light);
+}
+
+.toilet-card-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.toilet-card-badges {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.toilet-card-badge {
+  padding: 5px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.toilet-card-badge-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.toilet-card-badge-secondary {
+  background: rgba(255, 255, 255, 0.95);
+  color: #0369a1;
+}
+
+.toilet-card-badge-muted {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.toilet-card-badge-error {
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+}
+
+.toilet-card-title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px 0;
+}
+
+.toilet-card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.3;
+}
+
+.toilet-card-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.toilet-card-close:hover {
+  color: var(--color-text);
+}
+
+.toilet-card-address {
+  margin: 4px 16px 0;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.toilet-card-body {
+  padding: 12px 16px 16px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+.toilet-card-body p {
+  margin: 8px 0;
+  font-size: 14px;
+}
+
+.toilet-card-btn {
+  padding: 8px 14px;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+
+.toilet-card-btn-secondary {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+}
+
+.toilet-card-btn-secondary:hover {
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border-color: var(--color-primary-light);
+}
+
 /* Layout */
 .layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
   margin: 0;
   padding: 0;
+  overflow-x: hidden;
 }
 
 .layout-nav {
@@ -65,6 +300,9 @@ html, body, #root {
   border-bottom: 1px solid var(--color-border);
   flex-shrink: 0;
   box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .layout-nav-brand {
@@ -105,14 +343,18 @@ html, body, #root {
 .layout-main {
   flex: 1;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   overflow: auto;
+  width: 100%;
 }
 
 .layout-main-content {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
+  width: 100%;
 }
 
 /* Map page: scrollable so ToiletCard + footer appear below map */
@@ -132,6 +374,7 @@ html, body, #root {
 .layout-main-map .layout-main-content > * {
   flex: 1 1 auto;
   min-height: 0;
+  min-width: 0;
   display: flex;
   flex-direction: column;
 }
@@ -142,10 +385,13 @@ html, body, #root {
   padding: 3rem 1.5rem 2rem;
   margin-top: auto;
   flex-shrink: 0;
+  width: 100%;
+  max-width: 100%;
 }
 
 .layout-footer-inner {
   max-width: 72rem;
+  width: 100%;
   margin: 0 auto;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -241,8 +487,10 @@ html, body, #root {
 
 .landing-section {
   max-width: 72rem;
+  width: 100%;
   margin: 0 auto;
   padding: 4rem 1.5rem;
+  box-sizing: border-box;
 }
 
 .landing-section h2 {
@@ -537,4 +785,331 @@ html, body, #root {
 .btn-secondary:hover {
   background: var(--color-primary-light);
   border-color: var(--color-primary-light);
+}
+
+/* Map page: overlay and wrapper */
+.map-wrapper {
+  flex: 1;
+  position: relative;
+  min-height: 400px;
+}
+
+.map-floating-controls {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Airbnb-style bottom sheet: spacing from sides, quick slide-up animation */
+.map-toilet-overlay {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 50vh;
+  overflow: visible;
+  pointer-events: auto;
+  padding: 0 12px 12px;
+  animation: map-overlay-slide-up 0.25s ease-out;
+}
+
+@keyframes map-overlay-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.map-toilet-overlay-inner {
+  position: relative;
+  background: var(--color-bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  max-height: 50vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.map-toilet-overlay-image-wrap {
+  width: 100%;
+  height: 120px;
+  flex-shrink: 0;
+  overflow: hidden;
+  background: var(--color-border-light);
+}
+
+.map-toilet-overlay-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.map-toilet-overlay-body {
+  padding: 12px 16px 16px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.map-toilet-overlay-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  box-shadow: var(--shadow-md);
+}
+
+.map-toilet-overlay-close:hover {
+  background: white;
+}
+
+.map-toilet-overlay-title {
+  margin: 0 0 4px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.map-toilet-overlay-address {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+.map-toilet-overlay-meta {
+  margin: 0 0 12px;
+  font-size: 12px;
+  color: var(--color-text-light);
+}
+
+.map-toilet-overlay-cta {
+  display: inline-block;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--color-primary);
+  color: white;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.map-toilet-overlay-cta:hover {
+  background: var(--color-primary-hover);
+  color: white;
+}
+
+/* Toilet detail page */
+.toilet-detail-page {
+  min-height: 100%;
+  background: var(--color-bg);
+}
+
+.toilet-detail-loading,
+.toilet-detail-error {
+  padding: 3rem 1.5rem;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.toilet-detail-error .btn-primary {
+  margin-top: 1rem;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.toilet-detail-hero {
+  position: relative;
+  width: 100%;
+  height: 220px;
+  overflow: hidden;
+  background: var(--color-border-light);
+}
+
+.toilet-detail-hero-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.toilet-detail-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 50%);
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.toilet-detail-back {
+  position: absolute;
+  top: 1rem;
+  left: 1.5rem;
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 14px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+.toilet-detail-back:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.toilet-detail-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 0.5rem;
+}
+
+.toilet-detail-badge {
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.toilet-detail-badge-primary {
+  background: var(--color-primary);
+  color: white;
+}
+
+.toilet-detail-badge-secondary {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
+}
+
+.toilet-detail-badge-muted {
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+}
+
+.toilet-detail-badge-error {
+  background: rgba(220, 38, 38, 0.9);
+  color: white;
+}
+
+.toilet-detail-content {
+  padding: 1.5rem;
+  max-width: 36rem;
+  margin: 0 auto;
+}
+
+.toilet-detail-title {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.toilet-detail-address {
+  margin: 0 0 1.5rem;
+  color: var(--color-text-muted);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.toilet-detail-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 1.5rem;
+}
+
+.toilet-detail-btn {
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 600;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: background 0.2s, color 0.2s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.toilet-detail-btn-primary {
+  background: var(--color-primary);
+  color: white;
+  flex: 1;
+  min-width: 180px;
+}
+
+.toilet-detail-btn-primary:hover {
+  background: var(--color-primary-hover);
+  color: white;
+}
+
+.toilet-detail-btn-secondary {
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.toilet-detail-btn-secondary:hover {
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary-light);
+}
+
+.toilet-detail-btn-outline {
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1px solid var(--color-border);
+}
+
+.toilet-detail-btn-outline:hover {
+  background: var(--color-bg-soft);
+  color: var(--color-text);
+}
+
+.toilet-detail-info {
+  margin-bottom: 1.5rem;
+}
+
+.toilet-detail-info p {
+  margin: 0 0 0.75rem;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.toilet-detail-muted {
+  color: var(--color-text-light) !important;
+}
+
+.toilet-detail-footer-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
 }

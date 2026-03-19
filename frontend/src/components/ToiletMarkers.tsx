@@ -1,8 +1,9 @@
 /**
  * Toilet markers with distinct styles per category and verification status.
  * Uses marker clustering when zoomed out.
+ * Clicking a marker opens the overlay (max 50% screen) on the map; "View full details" goes to detail page.
  */
-import { Marker, CircleMarker, Popup } from 'react-leaflet';
+import { Marker, CircleMarker } from 'react-leaflet';
 import MarkerClusterGroup from 'react-leaflet-cluster';
 import { divIcon } from 'leaflet';
 import type { Toilet } from '../services/api';
@@ -75,11 +76,12 @@ export function ToiletMarkers({
             fillOpacity: 0.6,
             weight: 2,
           }}
-        >
-          <Popup>Your location</Popup>
-        </CircleMarker>
+        />
       )}
-      <MarkerClusterGroup>
+      <MarkerClusterGroup
+        disableClusteringAtZoom={13}
+        maxClusterRadius={50}
+      >
         {toilets.map((toilet) => (
           <Marker
             key={toilet.id}
@@ -88,28 +90,7 @@ export function ToiletMarkers({
             eventHandlers={{
               click: () => onSelect(toilet),
             }}
-          >
-            <Popup>
-              {toilet.access_code && (
-                <>
-                  Code: {toilet.access_code}
-                  <br />
-                </>
-              )}
-              {toilet.address}
-              <br />
-              Hours: {toilet.opening_hours ?? '—'}
-              <br />
-              <strong>{toilet.name}</strong>
-              {(toilet.verification_status === 'unverified' ||
-                toilet.verification_status === 'needs_review') && (
-                <>
-                  <br />
-                  <span style={{ color: '#64748b' }}>Unverified</span>
-                </>
-              )}
-            </Popup>
-          </Marker>
+          />
         ))}
       </MarkerClusterGroup>
     </>

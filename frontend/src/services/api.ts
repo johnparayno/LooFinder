@@ -3,6 +3,7 @@
  */
 
 export type ToiletCategory = 'free' | 'code_required' | 'purchase_required';
+export type ToiletType = 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
 export type SourceType = 'public_dataset' | 'user_submitted';
 export type VerificationStatus = 'verified' | 'unverified' | 'needs_review';
 
@@ -20,6 +21,18 @@ export interface Toilet {
   verification_status: VerificationStatus;
   last_verified_at: string | null;
   temporary_closed: boolean;
+  findtoilet_nid?: string | null;
+  toilet_type?: ToiletType;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
 }
 
 export interface ListToiletsParams {

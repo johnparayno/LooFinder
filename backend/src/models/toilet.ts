@@ -5,6 +5,8 @@ export type ToiletCategory = 'free' | 'code_required' | 'purchase_required';
 export type SourceType = 'public_dataset' | 'user_submitted';
 export type VerificationStatus = 'verified' | 'unverified' | 'needs_review';
 
+export type ToiletType = 'handicap' | 'pissoir' | 'unisex' | 'changingplace' | null;
+
 export interface Toilet {
   id: string;
   name: string;
@@ -21,6 +23,18 @@ export interface Toilet {
   temporary_closed: boolean;
   created_at: string;
   updated_at: string;
+  findtoilet_nid: string | null;
+  toilet_type: ToiletType;
+  payment: boolean;
+  manned: boolean;
+  changing_table: boolean;
+  tap: boolean;
+  needle_container: boolean;
+  contact: string | null;
+  image_url: string | null;
+  placement: string | null;
+  year_round: boolean;
+  round_the_clock: boolean;
 }
 
 export interface ToiletInsert {
@@ -37,6 +51,18 @@ export interface ToiletInsert {
   verification_status: VerificationStatus;
   last_verified_at?: string | null;
   temporary_closed?: boolean;
+  findtoilet_nid?: string | null;
+  toilet_type?: ToiletType;
+  payment?: boolean;
+  manned?: boolean;
+  changing_table?: boolean;
+  tap?: boolean;
+  needle_container?: boolean;
+  contact?: string | null;
+  image_url?: string | null;
+  placement?: string | null;
+  year_round?: boolean;
+  round_the_clock?: boolean;
 }
 
 const CATEGORIES: ToiletCategory[] = ['free', 'code_required', 'purchase_required'];
@@ -82,6 +108,9 @@ export function validateToilet(data: Partial<ToiletInsert>): string[] {
 }
 
 export function rowToToilet(row: Record<string, unknown>): Toilet {
+  const t = row.toilet_type as string | null;
+  const toiletType: ToiletType =
+    t === 'handicap' || t === 'pissoir' || t === 'unisex' || t === 'changingplace' ? t : null;
   return {
     id: row.id as string,
     name: row.name as string,
@@ -98,5 +127,17 @@ export function rowToToilet(row: Record<string, unknown>): Toilet {
     temporary_closed: Boolean(row.temporary_closed),
     created_at: row.created_at as string,
     updated_at: row.updated_at as string,
+    findtoilet_nid: (row.findtoilet_nid as string) ?? null,
+    toilet_type: toiletType,
+    payment: Boolean(row.payment),
+    manned: Boolean(row.manned),
+    changing_table: Boolean(row.changing_table),
+    tap: Boolean(row.tap),
+    needle_container: Boolean(row.needle_container),
+    contact: (row.contact as string) ?? null,
+    image_url: (row.image_url as string) ?? null,
+    placement: (row.placement as string) ?? null,
+    year_round: row.year_round != null ? Boolean(row.year_round) : true,
+    round_the_clock: Boolean(row.round_the_clock),
   };
 }

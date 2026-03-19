@@ -1,5 +1,5 @@
 /**
- * Seed script - loads Copenhagen toilet data via seedService
+ * Seed script - loads Denmark toilet data via seedService
  */
 import { seedDatabase } from '../services/seedService.js';
 

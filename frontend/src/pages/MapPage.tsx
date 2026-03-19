@@ -1,18 +1,27 @@
 /**
- * Map page - Leaflet map with toilet markers, find nearest, filters, search, user location
+ * Map page - Airbnb-inspired full-screen map with floating UI
  */
 import { useEffect, useState, useCallback, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { Toilet, ToiletCategory, VerificationStatus } from '../services/api';
 import { listToilets, findNearestToilet } from '../services/api';
-import { ToiletMarkers } from '../components/ToiletMarkers';
-import { ToiletCard } from '../components/ToiletCard';
-import { FilterBar } from '../components/FilterBar';
-import { SearchBar } from '../components/SearchBar';
+import {
+  MapShell,
+  MapSearchBar,
+  FilterPills,
+  ToiletMarker,
+  UserLocationMarker,
+  ToiletPreviewCard,
+  BottomSheet,
+  type BottomSheetSnap,
+} from '../components/map';
+import { getToiletImageUrl } from '../utils/toiletImage';
 
-// Copenhagen center
+import '../components/map/map.css';
+
 const DEFAULT_CENTER: [number, number] = [55.6761, 12.5683];
-const DEFAULT_ZOOM = 14;
+const DEFAULT_ZOOM = 16;
 
 function MapController({
   selectedToilet,
@@ -27,13 +36,15 @@ function MapController({
 
   useEffect(() => {
     if (selectedToilet) {
-      map.flyTo([selectedToilet.latitude, selectedToilet.longitude], 16);
+      map.flyTo([selectedToilet.latitude, selectedToilet.longitude], 17, {
+        duration: 400,
+      });
     }
   }, [map, selectedToilet]);
 
   useEffect(() => {
     if (centerOn) {
-      map.flyTo(centerOn, 14);
+      map.flyTo(centerOn, 16, { duration: 500 });
     }
   }, [map, centerOn]);
 
@@ -46,7 +57,6 @@ function MapController({
       const minLng = sw.lng;
       const maxLat = ne.lat;
       const maxLng = ne.lng;
-      // Validate bbox: map may have invalid bounds (e.g. 0 height) on initial load
       const latSpan = maxLat - minLat;
       const lngSpan = maxLng - minLng;
       const isValid =
@@ -58,7 +68,7 @@ function MapController({
         maxLng <= 180;
       const bbox = isValid
         ? `${minLat},${minLng},${maxLat},${maxLng}`
-        : '55.6,12.4,55.8,12.7'; // fallback Copenhagen
+        : '55.6,12.4,55.8,12.7';
       onBoundsChange(bbox);
     };
     map.whenReady(handler);
@@ -82,6 +92,7 @@ export function MapPage() {
   const [search, setSearch] = useState('');
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
   const [locationUnavailable, setLocationUnavailable] = useState(false);
+  const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('half');
   const lastBboxRef = useRef<string>('55.6,12.4,55.8,12.7');
 
   const fetchToilets = useCallback(
@@ -155,8 +166,18 @@ export function MapPage() {
     try {
       const nearest = await findNearestToilet({ lat: latLng[0], lng: latLng[1] });
       setSelectedToilet(nearest);
+      setBottomSheetSnap('half');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'No toilet found');
+    }
+  }, [userLocation]);
+
+  const handleLocateMe = useCallback(() => {
+    if (userLocation) {
+      setCenterOn(userLocation);
+      setTimeout(() => setCenterOn(null), 500);
+    } else {
+      setLocationUnavailable(true);
     }
   }, [userLocation]);
 
@@ -176,40 +197,22 @@ export function MapPage() {
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', minHeight: 400 }}>
-      <FilterBar
-        category={category}
-        verificationStatus={verificationStatus}
-        onCategoryChange={setCategory}
-        onVerificationStatusChange={setVerificationStatus}
-      />
-      <SearchBar
-        onSearch={handleSearch}
-        onAddressSelect={(address, lat, lng) => {
-          setSearch(address);
-          setCenterOn([lat, lng]);
-          setTimeout(() => setCenterOn(null), 500);
-          const bbox = `${lat - 0.02},${lng - 0.02},${lat + 0.02},${lng + 0.02}`;
-          lastBboxRef.current = bbox;
-          setLoading(true);
-          fetchToilets(bbox);
-        }}
-      />
-      <div style={{ flex: 1, position: 'relative', minHeight: 400 }}>
+    <MapShell>
+      <div className="map-wrapper">
         <MapContainer
           center={DEFAULT_CENTER}
           zoom={DEFAULT_ZOOM}
-          style={{ height: '100%', width: '100%', minHeight: 400 }}
+          style={{ height: '100%', width: '100%' }}
           scrollWheelZoom={true}
         >
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+            url="https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}.png"
           />
-          <ToiletMarkers
+          {userLocation && <UserLocationMarker position={userLocation} />}
+          <ToiletMarker
             toilets={toilets}
             selectedToilet={selectedToilet}
-            userLocation={userLocation}
             onSelect={setSelectedToilet}
           />
           <MapController
@@ -219,67 +222,151 @@ export function MapPage() {
           />
         </MapContainer>
 
-        <div style={{ position: 'absolute', top: 12, left: '50%', transform: 'translateX(-50%)', zIndex: 1000, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8 }}>
-          {locationUnavailable && (
-            <span style={{ fontSize: 12, color: 'var(--color-text-muted)', backgroundColor: 'rgba(255,255,255,0.9)', padding: '4px 8px', borderRadius: 4 }}>
-              Location unavailable – using map center
-            </span>
-          )}
-          <button
-            onClick={handleFindNearest}
-            style={{
-              padding: '12px 24px',
-              fontSize: 16,
-              fontWeight: 600,
-              backgroundColor: 'var(--color-primary)',
-              color: 'white',
-              border: 'none',
-              borderRadius: 'var(--radius-md)',
-              cursor: 'pointer',
-              boxShadow: 'var(--shadow-md)',
+        {/* Floating top: search + filters */}
+        <div className="map-floating-top">
+          <MapSearchBar
+            onSearch={handleSearch}
+            onAddressSelect={(address, lat, lng) => {
+              setSearch(address);
+              setCenterOn([lat, lng]);
+              setTimeout(() => setCenterOn(null), 500);
+              const bbox = `${lat - 0.02},${lng - 0.02},${lat + 0.02},${lng + 0.02}`;
+              lastBboxRef.current = bbox;
+              setLoading(true);
+              fetchToilets(bbox);
             }}
+          />
+          <FilterPills
+            category={category}
+            verificationStatus={verificationStatus}
+            onCategoryChange={setCategory}
+            onVerificationStatusChange={setVerificationStatus}
+          />
+        </div>
+
+        {/* Floating actions */}
+        <div className="map-floating-actions">
+          <button
+            type="button"
+            className="map-floating-btn"
+            onClick={handleLocateMe}
+            aria-label="Locate me"
           >
-            Find nearest toilet
+            <LocateIcon />
+          </button>
+          <button
+            type="button"
+            className="map-floating-btn primary"
+            onClick={handleFindNearest}
+          >
+            <ToiletIcon />
+            <span>Nearest toilet</span>
           </button>
         </div>
-      </div>
 
-      {loading && (
-        <div style={{ padding: 16, textAlign: 'center' }}>Loading toilets…</div>
-      )}
-      {error && (
-        <div style={{ padding: 16, color: 'var(--color-error)', textAlign: 'center' }}>
-          {error}
-        </div>
-      )}
-      {!loading && !error && toilets.length === 0 && (
-        <div
-          style={{
-            padding: 24,
-            textAlign: 'center',
-            color: 'var(--color-text-muted)',
-            backgroundColor: 'var(--color-bg-soft)',
-            borderTop: '1px solid var(--color-border)',
-          }}
-        >
-            <strong style={{ display: 'block', marginBottom: 8, color: 'var(--color-text)' }}>
-            No results
-          </strong>
-          {search
-            ? 'No toilets match your search. Try different keywords or adjust filters.'
-            : 'No toilets match your filters. Try adjusting category or verification status.'}
-          {!search && (
-            <p style={{ marginTop: 8, fontSize: 13 }}>
-              If you just started, run <code>npm run seed</code> in the backend folder to load toilet data.
-            </p>
-          )}
-        </div>
-      )}
-      {selectedToilet && (
-        <div style={{ padding: 16, borderTop: '1px solid var(--color-border)' }}>
-          <ToiletCard toilet={selectedToilet} onClose={() => setSelectedToilet(null)} />
-        </div>
-      )}
-    </div>
+        {locationUnavailable && (
+          <div className="map-location-banner" role="status">
+            Location unavailable – using map center
+          </div>
+        )}
+
+        {/* Selected toilet detail overlay */}
+        {selectedToilet && (
+          <div className="map-toilet-overlay" role="dialog" aria-label="Toilet details">
+            <div className="map-toilet-overlay-inner">
+              <button
+                className="map-toilet-overlay-close"
+                onClick={() => setSelectedToilet(null)}
+                aria-label="Close"
+              >
+                ×
+              </button>
+              <div className="map-toilet-overlay-image-wrap">
+                <img
+                  src={getToiletImageUrl(selectedToilet, 400, 160)}
+                  alt=""
+                  className="map-toilet-overlay-image"
+                />
+              </div>
+              <div className="map-toilet-overlay-body">
+                <h4 className="map-toilet-overlay-title">{selectedToilet.name}</h4>
+                <p className="map-toilet-overlay-address">{selectedToilet.address}</p>
+                <p className="map-toilet-overlay-meta">
+                  {selectedToilet.opening_hours ?? 'Hours not specified'}
+                </p>
+                <Link
+                  to={`/toilet/${selectedToilet.id}`}
+                  className="map-toilet-overlay-cta"
+                >
+                  View full details & directions →
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Bottom sheet with toilet preview cards */}
+        {!selectedToilet && (
+          <BottomSheet
+            snap={bottomSheetSnap}
+            onSnapChange={setBottomSheetSnap}
+            collapsedHeight={24}
+            halfHeight={42}
+            expandedHeight={75}
+          >
+            <div className="map-bottom-sheet-content">
+              <h3 style={{ margin: '0 0 12px', fontSize: 16, fontWeight: 600, color: 'var(--color-text)' }}>
+                Nearby toilets
+              </h3>
+              {loading && (
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)' }}>
+                  Loading…
+                </p>
+              )}
+              {error && (
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--color-error)' }}>
+                  {error}
+                </p>
+              )}
+              {!loading && !error && toilets.length === 0 && (
+                <p style={{ margin: 0, fontSize: 14, color: 'var(--color-text-muted)' }}>
+                  No toilets in this area. Try moving the map or adjusting filters.
+                </p>
+              )}
+              {!loading && !error && toilets.length > 0 && (
+                <div className="toilet-preview-cards">
+                  {toilets.slice(0, 10).map((toilet) => (
+                    <ToiletPreviewCard
+                      key={toilet.id}
+                      toilet={toilet}
+                      userLocation={userLocation}
+                      isSelected={false}
+                      onSelect={setSelectedToilet}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </BottomSheet>
+        )}
+      </div>
+    </MapShell>
+  );
+}
+
+function LocateIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+function ToiletIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 22v-4H6v-2h3v-2H6v-2h3V8a4 4 0 0 1 6 0v4h3v2h-3v2h3v2h-3v4" />
+    </svg>
   );
 }

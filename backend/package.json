@@ -12,6 +12,7 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "seed": "tsx src/scripts/seed.ts",
+    "enrich": "tsx src/scripts/enrichToiletData.ts",
     "test": "vitest run",
     "lint": "eslint src --max-warnings 0",
     "format": "prettier --write \"src/**/*.ts\""

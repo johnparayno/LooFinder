@@ -90,10 +90,27 @@ export function initSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_edit_suggestions_status ON edit_suggestions(status);
   `);
 
-  // Migration: add access_code column if missing (for existing databases)
+  // Migrations: add columns if missing (for existing databases)
   const tableInfo = db.prepare("PRAGMA table_info(toilets)").all() as { name: string }[];
-  const hasAccessCode = tableInfo.some((c) => c.name === 'access_code');
-  if (!hasAccessCode) {
-    db.exec('ALTER TABLE toilets ADD COLUMN access_code TEXT');
+  const cols = new Set(tableInfo.map((c) => c.name));
+  const migrations: [string, string][] = [
+    ['access_code', 'ALTER TABLE toilets ADD COLUMN access_code TEXT'],
+    ['findtoilet_nid', 'ALTER TABLE toilets ADD COLUMN findtoilet_nid TEXT'],
+    ['toilet_type', 'ALTER TABLE toilets ADD COLUMN toilet_type TEXT'],
+    ['payment', 'ALTER TABLE toilets ADD COLUMN payment INTEGER DEFAULT 0'],
+    ['manned', 'ALTER TABLE toilets ADD COLUMN manned INTEGER DEFAULT 0'],
+    ['changing_table', 'ALTER TABLE toilets ADD COLUMN changing_table INTEGER DEFAULT 0'],
+    ['tap', 'ALTER TABLE toilets ADD COLUMN tap INTEGER DEFAULT 0'],
+    ['needle_container', 'ALTER TABLE toilets ADD COLUMN needle_container INTEGER DEFAULT 0'],
+    ['contact', 'ALTER TABLE toilets ADD COLUMN contact TEXT'],
+    ['image_url', 'ALTER TABLE toilets ADD COLUMN image_url TEXT'],
+    ['placement', 'ALTER TABLE toilets ADD COLUMN placement TEXT'],
+    ['year_round', 'ALTER TABLE toilets ADD COLUMN year_round INTEGER DEFAULT 1'],
+    ['round_the_clock', 'ALTER TABLE toilets ADD COLUMN round_the_clock INTEGER DEFAULT 0'],
+  ];
+  for (const [col, sql] of migrations) {
+    if (!cols.has(col)) {
+      db.exec(sql);
+    }
   }
 }
