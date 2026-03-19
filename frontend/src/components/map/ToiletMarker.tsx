@@ -29,13 +29,10 @@ function getMarkerColor(toilet: Toilet): string {
 
 function createToiletIcon(toilet: Toilet, isSelected: boolean) {
   const color = getMarkerColor(toilet);
-  const isUnverified =
-    toilet.verification_status === 'unverified' ||
-    toilet.verification_status === 'needs_review';
 
   return divIcon({
     html: `
-      <div class="toilet-marker-wrap ${isSelected ? 'selected' : ''} ${isUnverified ? 'unverified' : ''}">
+      <div class="toilet-marker-wrap ${isSelected ? 'selected' : ''}">
         <div class="toilet-marker-dot" style="background: ${color};"></div>
       </div>
     `,

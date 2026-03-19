@@ -1,0 +1,71 @@
+/**
+ * Urban mobility brand tokens — see docs/MOBILITY_DESIGN_SYSTEM.md
+ * Semantic names map to existing app CSS variables.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&display=swap');
+
+:root {
+  /* —— Raw palette —— */
+  --ds-plum: #5b245f;
+  --ds-mulberry: #8e3a72;
+  --ds-coral: #f05d7a;
+  --ds-dust-rose: #f3b6c6;
+  --ds-dusk: #5e7fa3;
+  --ds-ivory: #faf8f6;
+  --ds-mist: #e9e6ea;
+  --ds-graphite: #222126;
+  --ds-cloud: #b9b3bc;
+  /** App icon / favicon (`public/logo.svg`) */
+  --ds-jade: #00a86b;
+
+  /* —— Gradients (hero / key art only) —— */
+  --gradient-plum-mulberry: linear-gradient(135deg, #5b245f 0%, #8e3a72 100%);
+  --gradient-mulberry-coral: linear-gradient(135deg, #8e3a72 0%, #f05d7a 100%);
+  --gradient-plum-dusk: linear-gradient(135deg, #5b245f 0%, #5e7fa3 100%);
+
+  /* —— Semantic: product UI —— */
+  --color-primary: var(--ds-jade);
+  --color-primary-hover: #008f5c;
+  --color-primary-light: rgba(0, 168, 107, 0.12);
+  --color-secondary: var(--ds-dusk);
+  --color-accent: var(--ds-coral);
+
+  --color-text: var(--ds-graphite);
+  --color-text-muted: #5e5c66;
+  --color-text-light: #8b8690;
+
+  --color-canvas: var(--ds-ivory);
+  --color-bg: #ffffff;
+  --color-bg-soft: var(--ds-mist);
+  --color-bg-hero: #ecf6f2;
+
+  --color-border: #ddd8e3;
+  --color-border-light: #f0eef2;
+
+  --color-success: #2d6a4f;
+  --color-error: #c43b53;
+  --color-warning: #b45309;
+
+  /* —— Elevation —— */
+  --shadow-sm: 0 1px 2px rgba(34, 33, 38, 0.05);
+  --shadow-md: 0 8px 24px rgba(34, 33, 38, 0.08);
+  --shadow-lg: 0 16px 48px rgba(34, 33, 38, 0.1);
+
+  /* —— Radius (app + marketing) —— */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 9999px;
+
+  /* —— Touch & type —— */
+  --touch-min: 44px;
+  --space-section-y: clamp(2.5rem, 8vw, 5rem);
+  --space-gutter: clamp(1.25rem, 4vw, 2rem);
+
+  --font-display: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  font-family: var(--font-display);
+  line-height: 1.5;
+  color: var(--color-text);
+}

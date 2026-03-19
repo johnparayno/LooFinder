@@ -76,6 +76,33 @@ export function listToilets(params: ListToiletsParams = {}): Toilet[] {
   return rows.map(rowToToilet);
 }
 
+export function countToilets(params: { bbox?: string } = {}): number {
+  const db = getDatabase();
+  const conditions: string[] = [];
+  const values: Record<string, unknown> = {};
+
+  if (params.bbox) {
+    const parts = params.bbox.split(',').map((s) => s.trim());
+    if (parts.length === 4) {
+      const nums = parts.map(Number);
+      if (!parts.some((s) => isNaN(Number(s)))) {
+        const [minLat, minLng, maxLat, maxLng] = nums;
+        conditions.push(
+          'latitude >= @minLat AND latitude <= @maxLat AND longitude >= @minLng AND longitude <= @maxLng'
+        );
+        values.minLat = minLat;
+        values.minLng = minLng;
+        values.maxLat = maxLat;
+        values.maxLng = maxLng;
+      }
+    }
+  }
+
+  const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+  const row = db.prepare(`SELECT COUNT(*) AS n FROM toilets ${where}`).get(values) as { n: number } | undefined;
+  return Number(row?.n ?? 0);
+}
+
 export function getToiletById(id: string): Toilet | null {
   const db = getDatabase();
   const stmt = db.prepare('SELECT * FROM toilets WHERE id = @id');

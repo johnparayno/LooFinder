@@ -4,6 +4,7 @@
 import { Router, Request, Response } from 'express';
 import {
   listToilets,
+  countToilets,
   getToiletById,
   findNearestToilet,
   updateToilet,
@@ -79,6 +80,13 @@ router.get('/nearest', (req: Request, res: Response) => {
     return;
   }
   res.json(toilet);
+});
+
+// GET /api/toilets/count - must be before /:id
+router.get('/count', (req: Request, res: Response) => {
+  const bbox = typeof req.query.bbox === 'string' ? req.query.bbox : undefined;
+  const count = countToilets({ bbox });
+  res.json({ count });
 });
 
 // GET /api/toilets/:id

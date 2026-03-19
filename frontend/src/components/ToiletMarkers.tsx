@@ -1,5 +1,5 @@
 /**
- * Toilet markers with distinct styles per category and verification status.
+ * Toilet markers with distinct colors per category; unverified uses gray fill only.
  * Uses marker clustering when zoomed out.
  * Clicking a marker opens the overlay (max 50% screen) on the map; "View full details" goes to detail page.
  */
@@ -27,8 +27,6 @@ function getMarkerColor(toilet: Toilet): string {
 
 function createToiletIcon(toilet: Toilet, isSelected: boolean) {
   const color = getMarkerColor(toilet);
-  const isUnverified =
-    toilet.verification_status === 'unverified' || toilet.verification_status === 'needs_review';
 
   return divIcon({
     html: `
@@ -40,13 +38,11 @@ function createToiletIcon(toilet: Toilet, isSelected: boolean) {
           border: 2px solid ${isSelected ? '#1e293b' : 'white'};
           border-radius: 50%;
           box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-          ${isUnverified ? 'border-style: dashed;' : ''}
         "></div>
-        ${isUnverified ? '<span style="font-size:9px;color:#64748b;font-weight:600;white-space:nowrap;">Unverified</span>' : ''}
       </div>
     `,
     className: 'toilet-marker',
-    iconSize: [24, isUnverified ? 36 : 24],
+    iconSize: [24, 24],
     iconAnchor: [12, 12],
   });
 }

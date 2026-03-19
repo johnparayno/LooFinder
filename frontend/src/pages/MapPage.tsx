@@ -2,7 +2,7 @@
  * Map page - Airbnb-inspired full-screen map with floating UI
  */
 import { useEffect, useState, useCallback, useRef } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { MapContainer, TileLayer, useMap } from 'react-leaflet';
 import type { Toilet, ToiletCategory, VerificationStatus, VenueTypeFilter } from '../services/api';
 import { listToilets } from '../services/api';
@@ -22,7 +22,8 @@ import { getToiletDisplayName } from '../utils/toiletDisplay';
 import '../components/map/map.css';
 
 const DEFAULT_CENTER: [number, number] = [55.6761, 12.5683];
-const DEFAULT_ZOOM = 16;
+/** Initial zoom: two levels wider than previous default (16) for more context on entry */
+const DEFAULT_ZOOM = 14;
 
 function MapController({
   centerOn,
@@ -93,9 +94,6 @@ function MapController({
 }
 
 export function MapPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const viewParam = searchParams.get('view');
-
   const [toilets, setToilets] = useState<Toilet[]>([]);
   const [selectedToilet, setSelectedToilet] = useState<Toilet | null>(null);
   const [userLocation, setUserLocation] = useState<[number, number] | null>(null);
@@ -108,16 +106,8 @@ export function MapPage() {
   const [centerOn, setCenterOn] = useState<[number, number] | null>(null);
   const [locationUnavailable, setLocationUnavailable] = useState(false);
   const [bottomSheetSnap, setBottomSheetSnap] = useState<BottomSheetSnap>('half');
-  const [mobileView, setMobileView] = useState<'map' | 'list'>(() =>
-    viewParam === 'list' ? 'list' : 'map'
-  );
   const [filterOverlayOpen, setFilterOverlayOpen] = useState(false);
   const lastBboxRef = useRef<string>('55.6,12.4,55.8,12.7');
-
-  // Sync view with URL when navigating (e.g. List nav link)
-  useEffect(() => {
-    setMobileView(viewParam === 'list' ? 'list' : 'map');
-  }, [viewParam]);
 
   const fetchToilets = useCallback(
     async (bbox: string, searchQuery?: string) => {
@@ -201,14 +191,28 @@ export function MapPage() {
       setLocationUnavailable(true);
       return;
     }
-    const id = navigator.geolocation.watchPosition(
+    const watchId = navigator.geolocation.watchPosition(
       (pos) => {
         setUserLocation([pos.coords.latitude, pos.coords.longitude]);
         setLocationUnavailable(false);
       },
       () => setLocationUnavailable(true)
     );
-    return () => navigator.geolocation.clearWatch(id);
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setUserLocation([lat, lng]);
+        setLocationUnavailable(false);
+        setCenterOn([lat, lng]);
+        setTimeout(() => setCenterOn(null), 500);
+      },
+      () => setLocationUnavailable(true),
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
   }, []);
 
   const listPanel = (
@@ -251,7 +255,7 @@ export function MapPage() {
     <MapShell>
       <div className="map-desktop-layout">
         <aside className="map-list-sidebar">{listPanel}</aside>
-        <div className={`map-wrapper ${mobileView === 'list' ? 'map-wrapper-list-mode' : ''}`}>
+        <div className="map-wrapper">
         <div className="map-canvas-wrap">
         <MapContainer
           center={DEFAULT_CENTER}
@@ -275,11 +279,6 @@ export function MapPage() {
             onBoundsChange={handleBoundsChange}
           />
         </MapContainer>
-        </div>
-
-        {/* Mobile list view - full screen when in list mode */}
-        <div className="map-mobile-list">
-          <div className="map-mobile-list-content">{listPanel}</div>
         </div>
 
         {/* Floating top: search + filter button */}
@@ -336,47 +335,17 @@ export function MapPage() {
           </div>
         )}
 
-        {/* List/Map toggle - near bottom */}
-        <div className="map-view-toggle map-view-toggle-bottom" role="tablist" aria-label="View mode">
+        {/* Map marker - bottom right, center map on my location */}
+        <div className="map-location-control">
           <button
             type="button"
-            role="tab"
-            aria-selected={mobileView === 'list'}
-            className={`map-view-toggle-btn ${mobileView === 'list' ? 'active' : ''}`}
-            onClick={() => {
-              setMobileView('list');
-              setSearchParams({ view: 'list' });
-            }}
+            className="map-location-btn"
+            onClick={handleLocateMe}
+            aria-label="Find my location"
           >
-            List
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mobileView === 'map'}
-            className={`map-view-toggle-btn ${mobileView === 'map' ? 'active' : ''}`}
-            onClick={() => {
-              setMobileView('map');
-              setSearchParams({});
-            }}
-          >
-            Map
+            <MapMarkerIcon />
           </button>
         </div>
-
-        {/* Map marker - bottom right, center map on my location */}
-        {mobileView === 'map' && (
-          <div className="map-location-control">
-            <button
-              type="button"
-              className="map-location-btn"
-              onClick={handleLocateMe}
-              aria-label="Find my location"
-            >
-              <MapMarkerIcon />
-            </button>
-          </div>
-        )}
 
         {locationUnavailable && (
           <div className="map-location-banner" role="status">
@@ -419,8 +388,8 @@ export function MapPage() {
           </div>
         )}
 
-        {/* Bottom sheet with toilet preview cards - hidden in list mode */}
-        {!selectedToilet && mobileView === 'map' && (
+        {/* Bottom sheet with toilet preview cards */}
+        {!selectedToilet && (
           <BottomSheet
             snap={bottomSheetSnap}
             onSnapChange={setBottomSheetSnap}

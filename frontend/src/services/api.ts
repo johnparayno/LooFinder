@@ -73,6 +73,15 @@ async function fetchApi<T>(path: string, init?: RequestInit): Promise<T> {
   return data as T;
 }
 
+export async function countToilets(params: { bbox?: string } = {}): Promise<number> {
+  const searchParams = new URLSearchParams();
+  if (params.bbox) searchParams.set('bbox', params.bbox);
+  const qs = searchParams.toString();
+  const path = qs ? `/toilets/count?${qs}` : '/toilets/count';
+  const { count } = await fetchApi<{ count: number }>(path);
+  return count;
+}
+
 export async function listToilets(params: ListToiletsParams = {}): Promise<Toilet[]> {
   const searchParams = new URLSearchParams();
   if (params.bbox) searchParams.set('bbox', params.bbox);

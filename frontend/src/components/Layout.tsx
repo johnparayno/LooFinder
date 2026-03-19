@@ -1,10 +1,9 @@
-import { Outlet, Link, useLocation, useSearchParams } from 'react-router-dom';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { LooFinderLogo } from './LooFinderLogo';
 
 export function Layout() {
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const isListView = location.pathname === '/map' && searchParams.get('view') === 'list';
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -27,6 +26,7 @@ export function Layout() {
       )}
       <nav className="layout-nav">
         <Link to="/" className="layout-nav-brand">
+          <LooFinderLogo className="layout-nav-brand-logo" />
           LooFinder
         </Link>
         <div className="layout-nav-links">
@@ -38,15 +38,9 @@ export function Layout() {
           </Link>
           <Link
             to="/map"
-            className={`layout-nav-link ${location.pathname === '/map' && !isListView ? 'active' : ''}`}
+            className={`layout-nav-link ${location.pathname === '/map' ? 'active' : ''}`}
           >
             Map
-          </Link>
-          <Link
-            to="/map?view=list"
-            className={`layout-nav-link ${isListView ? 'active' : ''}`}
-          >
-            List
           </Link>
           <Link
             to="/submit"
@@ -70,7 +64,10 @@ export function Layout() {
         <footer className="layout-footer">
         <div className="layout-footer-inner">
           <div className="layout-footer-section">
-            <h4>LooFinder</h4>
+            <h4 className="layout-footer-brand">
+              <LooFinderLogo className="layout-footer-brand-logo" />
+              LooFinder
+            </h4>
             <ul>
               <li><Link to="/">Home</Link></li>
               <li><Link to="/map">Find toilets</Link></li>
