@@ -600,20 +600,18 @@ async function fetchFromFindToilet(): Promise<ToiletInsert[]> {
     }
   }
 
-  // 1. Try full API first (all 98 municipalities in one request)
+  // 1. Fetch full API (all 98 municipalities in one request)
   try {
     const res = await fetchWithRetry(FINDTOILET_API);
     const data = (await res.json()) as FindToiletResponse;
     const items = data?.toilets ?? [];
-    if (items.length > 0) {
-      addItems(items);
-      return toilets;
-    }
+    addItems(items);
   } catch {
-    // Fall through to municipality crawl
+    // Continue to municipality crawl
   }
 
-  // 2. Fallback: crawl each municipality individually
+  // 2. Supplement: crawl each municipality individually for maximum ALL DENMARK coverage
+  // (some municipalities may have data not included in bulk response)
   for (const tid of MUNICIPALITY_TERM_IDS) {
     try {
       const res = await fetchWithRetry(FINDTOILET_API_BY_TID(tid), 2);
@@ -649,31 +647,58 @@ const COPENHAGEN_WFS_TMF =
 const COPENHAGEN_WFS_ANDRE =
   'https://wfs-kbhkort.kk.dk/k101/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=k101:toilet_puma_agg_andre_kk&srsname=EPSG:4326&outputFormat=application/json';
 
+function extractLatLngFromGeometry(geom: GeoJsonFeature['geometry']): [number, number] | null {
+  const coords = geom?.coordinates;
+  if (!coords) return null;
+  if (Array.isArray(coords[0]) && Array.isArray(coords[0][0])) {
+    const first = (coords as number[][][])[0]?.[0];
+    return first && first.length >= 2 ? [first[0], first[1]] : null;
+  }
+  if (Array.isArray(coords[0]) && typeof coords[0][0] === 'number') {
+    const first = (coords as number[][])[0];
+    return first && first.length >= 2 ? [first[0], first[1]] : null;
+  }
+  if (typeof coords[0] === 'number' && typeof coords[1] === 'number') {
+    return [coords[0] as number, coords[1] as number];
+  }
+  return null;
+}
+
 function mapOpendataFeatureToToilet(f: GeoJsonFeature): ToiletInsert | null {
-  const coords = f?.geometry?.coordinates;
-  if (!coords || coords.length < 2) return null;
-  const [lng, lat] = coords;
+  const extracted = extractLatLngFromGeometry(f?.geometry);
+  if (!extracted) return null;
+  const [lng, lat] = extracted;
   const props = f?.properties ?? {};
-  // Copenhagen WFS: toilet_lokalitet, vejnavn_husnummer, postnummer, toilet_betegnelse, aabningstid_doegn, aabningsperiode
+  // Copenhagen WFS: toilet_lokalitet, vejnavn_husnummer, postnummer | Frederiksberg: adresse, navn | Vejle: facilitetTekst, adresse
   const name =
     (props.toilet_lokalitet as string) ||
     (props.navn as string) ||
     (props.name as string) ||
     (props.title as string) ||
+    (props.facilitetTekst as string) ||
+    (props.toilet_betegnelse as string) ||
     'Unnamed Toilet';
-  const street = (props.vejnavn_husnummer as string) || '';
-  const postal = (props.postnummer as string) || '';
+  const street =
+    (props.vejnavn_husnummer as string) ||
+    (props.adresse as string) ||
+    (props.vejnavn as string) ||
+    '';
+  const postal = (props.postnummer as string) || (props.postnr as string) || '';
   const address = [street, postal].filter(Boolean).join(', ') || `${lat.toFixed(5)}, ${lng.toFixed(5)}`;
-  let openingHours = (props.aabningstider as string) || (props.opening_hours as string) || null;
-  const aabningDoegn = String(props.aabningstid_doegn ?? '');
-  const roundTheClock = /døgn|24/i.test(aabningDoegn) && !/natlukket/i.test(aabningDoegn);
+  let openingHours =
+    (props.aabningstider as string) ||
+    (props.opening_hours as string) ||
+    (props.aabningstid as string) ||
+    null;
+  const aabningDoegn = String(props.aabningstid_doegn ?? props.aabningstid ?? '');
+  const roundTheClock = /døgn|24|hele døgnet/i.test(aabningDoegn) && !/natlukket/i.test(aabningDoegn);
   if (roundTheClock && !openingHours) openingHours = '24/7';
   const aabningsperiode = String(props.aabningsperiode ?? '');
   const yearRound = !/vinterlukket|sommerlukket|seasonal/i.test(aabningsperiode);
-  const handicap = String(props.handicapadgang ?? '').toLowerCase();
-  const toiletType = handicap === 'ja' ? ('handicap' as const) : null;
+  const handicap = String(props.handicapadgang ?? props.handicap ?? props.handicapvenlig ?? '').toLowerCase();
+  const toiletType = /ja|yes|true|1/i.test(handicap) ? ('handicap' as const) : null;
   const status = props.status as string;
-  const accessNotes = handicap === 'ja' ? 'Handicap accessible' : null;
+  const accessNotes = toiletType ? 'Handicap accessible' : null;
   return {
     id: randomUUID(),
     name: String(name).trim(),
@@ -722,29 +747,71 @@ async function fetchFromOpendataCopenhagen(): Promise<ToiletInsert[]> {
   return toilets;
 }
 
+/** Aarhus GeoJSON - Offentlige toiletter + Bytoiletter (portal.opendata.dk) */
+const AARHUS_GEOJSON_ANDRE =
+  'https://webkort.aarhuskommune.dk/spatialmap?page=get_geojson_opendata&datasource=andre_toiletter';
+const AARHUS_GEOJSON_BY = 'https://webkort.aarhuskommune.dk/spatialmap?page=get_geojson_opendata&datasource=by_toiletter';
+
 async function fetchFromOpendataAarhus(): Promise<ToiletInsert[]> {
-  // Aarhus WFS/GeoJSON - try common CKAN endpoints
-  const urls = [
-    'https://data.aarhuskommune.dk/datasets/offentlige-toiletter/geojson',
-    'https://api.dataforsyningen.dk/offentlige_toiletter?format=geojson',
-  ];
+  const urls = [AARHUS_GEOJSON_ANDRE, AARHUS_GEOJSON_BY];
+  const toilets: ToiletInsert[] = [];
   for (const url of urls) {
     try {
-      const res = await fetch(url);
+      const res = await fetchWithRetry(url, 2);
       if (!res.ok) continue;
       const data = (await res.json()) as GeoJsonResponse;
       const features = data?.features ?? [];
-      const toilets: ToiletInsert[] = [];
       for (const f of features) {
         const t = mapOpendataFeatureToToilet(f);
         if (t) toilets.push(t);
       }
-      if (toilets.length > 0) return toilets;
     } catch {
       // Skip
     }
   }
-  return [];
+  return toilets;
+}
+
+/** Frederiksberg GeoJSON (portal.opendata.dk - gc2 API) */
+const FREDERIKSBERG_GEOJSON =
+  'https://gc2ekstern.frederiksberg.dk/api/v2/sql/frederiksberg?format=geojson&q=select%20*%20from%20byrum.toiletter_offentlige&srs=4326';
+
+async function fetchFromOpendataFrederiksberg(): Promise<ToiletInsert[]> {
+  try {
+    const res = await fetchWithRetry(FREDERIKSBERG_GEOJSON, 2);
+    if (!res.ok) return [];
+    const data = (await res.json()) as GeoJsonResponse;
+    const features = data?.features ?? [];
+    const toilets: ToiletInsert[] = [];
+    for (const f of features) {
+      const t = mapOpendataFeatureToToilet(f);
+      if (t) toilets.push(t);
+    }
+    return toilets;
+  } catch {
+    return [];
+  }
+}
+
+/** Vejle ArcGIS REST API - returns GeoJSON (portal.opendata.dk) */
+const VEJLE_GEOJSON =
+  'https://kortservice.vejle.dk/gis/rest/services/OPENDATA/Vejle/MapServer/4/query?where=facilitetTekst%3D%27Toilet%27&outFields=*&returnGeometry=true&f=geojson';
+
+async function fetchFromOpendataVejle(): Promise<ToiletInsert[]> {
+  try {
+    const res = await fetchWithRetry(VEJLE_GEOJSON, 2);
+    if (!res.ok) return [];
+    const data = (await res.json()) as GeoJsonResponse;
+    const features = data?.features ?? [];
+    const toilets: ToiletInsert[] = [];
+    for (const f of features) {
+      const t = mapOpendataFeatureToToilet(f);
+      if (t) toilets.push(t);
+    }
+    return toilets;
+  } catch {
+    return [];
+  }
 }
 
 /** Fallback: legacy opendata URLs (used when WFS fails) */
@@ -775,6 +842,7 @@ async function fetchFromOpendataLegacy(): Promise<ToiletInsert[]> {
 /** OpenStreetMap Overpass API - amenity=toilets in Denmark (bbox: 54.55,8.0,57.75,15.2) */
 const OVERPASS_API = 'https://overpass-api.de/api/interpreter';
 const DENMARK_BBOX = '(54.55,8.0,57.75,15.2)';
+const OVERPASS_TIMEOUT = 60;
 
 interface OverpassElement {
   type: 'node' | 'way' | 'relation';
@@ -790,10 +858,12 @@ interface OverpassResponse {
 }
 
 async function fetchFromOpenStreetMap(): Promise<ToiletInsert[]> {
-  const query = `[out:json][timeout:25];
+  const query = `[out:json][timeout:${OVERPASS_TIMEOUT}];
 (
   node["amenity"="toilets"]${DENMARK_BBOX};
   way["amenity"="toilets"]${DENMARK_BBOX};
+  node["building"="toilets"]${DENMARK_BBOX};
+  way["building"="toilets"]${DENMARK_BBOX};
 );
 out center;`;
   try {
@@ -903,6 +973,20 @@ export async function seedDatabase(dbPath?: string): Promise<{ count: number; so
   if (aarhus.length > 0) {
     toilets = deduplicateByLocation([...toilets, ...aarhus]);
     sources.push('opendata_aarhus');
+  }
+
+  // 3b. opendata.dk Frederiksberg - supplement
+  const frb = await fetchFromOpendataFrederiksberg();
+  if (frb.length > 0) {
+    toilets = deduplicateByLocation([...toilets, ...frb]);
+    sources.push('opendata_frederiksberg');
+  }
+
+  // 3c. opendata.dk Vejle - supplement
+  const vejle = await fetchFromOpendataVejle();
+  if (vejle.length > 0) {
+    toilets = deduplicateByLocation([...toilets, ...vejle]);
+    sources.push('opendata_vejle');
   }
 
   // 4. If no data yet, try legacy opendata URLs
