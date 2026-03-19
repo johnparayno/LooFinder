@@ -629,10 +629,13 @@ async function fetchFromFindToilet(): Promise<ToiletInsert[]> {
   return toilets;
 }
 
-// opendata.dk GeoJSON format: { type: "FeatureCollection", features: [{ geometry: { coordinates: [lng, lat] }, properties: {...} }] }
+// opendata.dk GeoJSON format: Point [lng,lat], LineString number[][], Polygon number[][][]
 interface GeoJsonFeature {
   type?: string;
-  geometry?: { type?: string; coordinates?: number[] };
+  geometry?: {
+    type?: string;
+    coordinates?: number[] | number[][] | number[][][];
+  };
   properties?: Record<string, unknown>;
 }
 
