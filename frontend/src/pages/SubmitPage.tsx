@@ -12,7 +12,8 @@ const CATEGORIES: { value: ToiletCategory; label: string }[] = [
   { value: 'purchase_required', label: 'Purchase required' },
 ];
 
-const TOILET_TYPES: { value: ToiletType; label: string }[] = [
+/** Non-null toilet types only (select options cannot use null) */
+const TOILET_TYPES: { value: Exclude<ToiletType, null>; label: string }[] = [
   { value: 'handicap', label: 'Handicap' },
   { value: 'pissoir', label: 'Pissoir' },
   { value: 'unisex', label: 'Unisex' },
@@ -299,7 +300,7 @@ export function SubmitPage() {
           <label htmlFor="toilet_type" style={labelStyle}>Toilet type</label>
           <select
             id="toilet_type"
-            value={toiletType}
+            value={toiletType ?? ''}
             onChange={(e) => setToiletType((e.target.value || '') as ToiletType | '')}
             style={inputStyle}
           >

@@ -20,7 +20,8 @@ const CATEGORY_OPTIONS: { value: ToiletCategory; label: string }[] = [
   { value: 'purchase_required', label: 'Purchase required' },
 ];
 
-const TOILET_TYPES: { value: ToiletType; label: string }[] = [
+/** Non-null toilet types only (select options cannot use null) */
+const TOILET_TYPES: { value: Exclude<ToiletType, null>; label: string }[] = [
   { value: 'handicap', label: 'Handicap' },
   { value: 'pissoir', label: 'Pissoir' },
   { value: 'unisex', label: 'Unisex' },
@@ -247,7 +248,7 @@ export function EditModal({ toilet, onClose, onSuccess }: EditModalProps) {
           </div>
           <div style={{ marginBottom: 12 }}>
             <label htmlFor="edit-toilet-type" style={{ display: 'block', marginBottom: 6, fontSize: 14, fontWeight: 500 }}>Toilet type</label>
-            <select id="edit-toilet-type" value={toiletType} onChange={(e) => setToiletType((e.target.value || '') as ToiletType | '')} disabled={submitting} style={inputStyle}>
+            <select id="edit-toilet-type" value={toiletType ?? ''} onChange={(e) => setToiletType((e.target.value || '') as ToiletType | '')} disabled={submitting} style={inputStyle}>
               <option value="">— Not specified —</option>
               {TOILET_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
             </select>
